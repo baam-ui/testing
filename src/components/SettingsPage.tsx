@@ -110,8 +110,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
       realm: 'Soul Transformation'
     },
     { 
-      id: '
-' as ThemeType, 
+      id: 'silver' as ThemeType, 
       name: 'Silver Moon', 
       description: 'Ethereal silver moonlight',
       colors: ['#F8F8FF', '#C0C0C0'],
