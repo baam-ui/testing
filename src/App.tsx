@@ -9,8 +9,9 @@ import ProfilePage from './components/ProfilePage';
 import SettingsPage from './components/SettingsPage';
 import CultivationGame from './components/CultivationGame';
 import TypingGamesPage from './components/TypingGamesPage';
+import CalculatorPage from './components/CalculatorPage';
 
-export type PageType = 'dashboard' | 'content' | 'profile' | 'settings' | 'cultivation' | 'typing';
+export type PageType = 'dashboard' | 'content' | 'profile' | 'settings' | 'cultivation' | 'typing' | 'calculator';
 export type ThemeType = 'peach' | 'ocean' | 'forest' | 'sunset' | 'midnight' | 'lavender' | 'crimson' | 'emerald' | 'sapphire' | 'amethyst' | 'golden' | 'silver' | 'cosmic' | 'phoenix' | 'dragon' | 'celestial' | 'void' | 'eternal' | 'divine' | 'primordial' | 'chaos' | 'omnipotent';
 export type FontType = 'inter' | 'orbitron' | 'poppins' | 'roboto' | 'playfair' | 'montserrat' | 'lato' | 'opensans' | 'nunito' | 'raleway' | 'merriweather' | 'sourcecodepro';
 
@@ -68,6 +69,8 @@ function App() {
         return <CultivationGame />;
       case 'typing':
         return <TypingGamesPage />;
+      case 'calculator':
+        return <CalculatorPage />;
       case 'settings':
         return <SettingsPage 
           isDarkMode={isDarkMode}

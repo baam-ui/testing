@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, Plus, ChevronLeft, ChevronRight, Edit2, Trash2, Save, X } from 'lucide-react';
-import Calculator from './Calculator';
 
 interface Event {
   id: string;
@@ -152,10 +151,9 @@ const SchedulePanel: React.FC = () => {
   const selectedDateEvents = getSelectedDateEvents();
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+    <div className="max-w-4xl mx-auto">
       {/* Schedule Panel */}
-      <div className="xl:col-span-2">
-        <div className="glass-panel p-6 transition-all h-full">
+      <div className="glass-panel p-6 transition-all">
           <div className="flex items-center justify-between mb-6">
             <h2 className="orbitron text-xl font-bold text-primary">Schedule</h2>
             <button
@@ -372,12 +370,6 @@ const SchedulePanel: React.FC = () => {
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Calculator Widget */}
-      <div className="xl:col-span-1">
-        <Calculator />
-      </div>
     </div>
   );
 };

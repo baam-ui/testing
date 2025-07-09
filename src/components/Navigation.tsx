@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, FileText, User, Settings, Zap, Keyboard } from 'lucide-react';
+import { Home, FileText, User, Settings, Zap, Keyboard, Calculator } from 'lucide-react';
 import { PageType } from '../App';
 
 interface NavigationProps {
@@ -13,6 +13,7 @@ const Navigation: React.FC<NavigationProps> = ({ currentPage, setCurrentPage }) 
     { id: 'content' as PageType, label: 'Content Hub', icon: FileText },
     { id: 'cultivation' as PageType, label: 'Cultivation', icon: Zap },
     { id: 'typing' as PageType, label: 'Typing Games', icon: Keyboard },
+    { id: 'calculator' as PageType, label: 'Calculator', icon: Calculator },
     { id: 'profile' as PageType, label: 'Profile', icon: User },
     { id: 'settings' as PageType, label: 'Settings', icon: Settings }
   ];
