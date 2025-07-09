@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Keyboard, Play, Pause, RotateCcw, Target, Zap, Clock, Trophy, Flame, Shield } from 'lucide-react';
+import { Keyboard, Play, Pause, RotateCcw, Target, Zap, Clock, Trophy, Flame, Shield, Heart, Star } from 'lucide-react';
 
 interface TypingStats {
   wpm: number;
