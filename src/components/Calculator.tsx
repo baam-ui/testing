@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calculator as CalcIcon, Delete, RotateCcw } from 'lucide-react';
+import { Calculator as CalcIcon, Delete, RotateCcw, History, Zap, Brain } from 'lucide-react';
 
 interface CalculatorProps {
   className?: string;
@@ -13,6 +13,8 @@ const Calculator: React.FC<CalculatorProps> = ({ className = '' }) => {
   const [history, setHistory] = useState<string[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const [isScientific, setIsScientific] = useState(false);
+  const [memory, setMemory] = useState(0);
+  const [angleMode, setAngleMode] = useState<'deg' | 'rad'>('deg');
 
   const inputNumber = (num: string) => {
     if (waitingForOperand) {
@@ -43,6 +45,10 @@ const Calculator: React.FC<CalculatorProps> = ({ className = '' }) => {
     setDisplay('0');
   };
 
+  const clearHistory = () => {
+    setHistory([]);
+  };
+
   const performOperation = (nextOperation: string) => {
     const inputValue = parseFloat(display);
 
@@ -55,9 +61,8 @@ const Calculator: React.FC<CalculatorProps> = ({ className = '' }) => {
       setDisplay(String(newValue));
       setPreviousValue(String(newValue));
       
-      // Add to history
       const historyEntry = `${currentValue} ${operation} ${inputValue} = ${newValue}`;
-      setHistory(prev => [historyEntry, ...prev.slice(0, 9)]); // Keep last 10 entries
+      setHistory(prev => [historyEntry, ...prev.slice(0, 19)]);
     }
 
     setWaitingForOperand(true);
@@ -78,6 +83,8 @@ const Calculator: React.FC<CalculatorProps> = ({ className = '' }) => {
         return firstValue % secondValue;
       case '^':
         return Math.pow(firstValue, secondValue);
+      case 'xʸ':
+        return Math.pow(firstValue, secondValue);
       default:
         return secondValue;
     }
@@ -89,13 +96,22 @@ const Calculator: React.FC<CalculatorProps> = ({ className = '' }) => {
 
     switch (func) {
       case 'sin':
-        result = Math.sin(inputValue * Math.PI / 180); // Convert to radians
+        result = Math.sin(angleMode === 'deg' ? inputValue * Math.PI / 180 : inputValue);
         break;
       case 'cos':
-        result = Math.cos(inputValue * Math.PI / 180);
+        result = Math.cos(angleMode === 'deg' ? inputValue * Math.PI / 180 : inputValue);
         break;
       case 'tan':
-        result = Math.tan(inputValue * Math.PI / 180);
+        result = Math.tan(angleMode === 'deg' ? inputValue * Math.PI / 180 : inputValue);
+        break;
+      case 'asin':
+        result = angleMode === 'deg' ? Math.asin(inputValue) * 180 / Math.PI : Math.asin(inputValue);
+        break;
+      case 'acos':
+        result = angleMode === 'deg' ? Math.acos(inputValue) * 180 / Math.PI : Math.acos(inputValue);
+        break;
+      case 'atan':
+        result = angleMode === 'deg' ? Math.atan(inputValue) * 180 / Math.PI : Math.atan(inputValue);
         break;
       case 'log':
         result = Math.log10(inputValue);
@@ -105,6 +121,9 @@ const Calculator: React.FC<CalculatorProps> = ({ className = '' }) => {
         break;
       case 'sqrt':
         result = Math.sqrt(inputValue);
+        break;
+      case '∛':
+        result = Math.cbrt(inputValue);
         break;
       case '1/x':
         result = 1 / inputValue;
@@ -124,6 +143,18 @@ const Calculator: React.FC<CalculatorProps> = ({ className = '' }) => {
       case 'e':
         result = Math.E;
         break;
+      case '10ˣ':
+        result = Math.pow(10, inputValue);
+        break;
+      case 'eˣ':
+        result = Math.exp(inputValue);
+        break;
+      case 'abs':
+        result = Math.abs(inputValue);
+        break;
+      case 'rand':
+        result = Math.random();
+        break;
       default:
         result = inputValue;
     }
@@ -131,14 +162,14 @@ const Calculator: React.FC<CalculatorProps> = ({ className = '' }) => {
     setDisplay(String(result));
     setWaitingForOperand(true);
     
-    // Add to history
     const historyEntry = `${func}(${inputValue}) = ${result}`;
-    setHistory(prev => [historyEntry, ...prev.slice(0, 9)]);
+    setHistory(prev => [historyEntry, ...prev.slice(0, 19)]);
   };
 
   const factorial = (n: number): number => {
     if (n < 0) return 0;
     if (n === 0 || n === 1) return 1;
+    if (n > 170) return Infinity; // Prevent overflow
     let result = 1;
     for (let i = 2; i <= n; i++) {
       result *= i;
@@ -155,14 +186,33 @@ const Calculator: React.FC<CalculatorProps> = ({ className = '' }) => {
 
       setDisplay(String(newValue));
       
-      // Add to history
       const historyEntry = `${previousValue} ${operation} ${inputValue} = ${newValue}`;
-      setHistory(prev => [historyEntry, ...prev.slice(0, 9)]);
+      setHistory(prev => [historyEntry, ...prev.slice(0, 19)]);
       
       setPreviousValue(null);
       setOperation(null);
       setWaitingForOperand(true);
     }
+  };
+
+  const memoryStore = () => {
+    setMemory(parseFloat(display));
+    setHistory(prev => [`M = ${display}`, ...prev.slice(0, 19)]);
+  };
+
+  const memoryRecall = () => {
+    setDisplay(String(memory));
+    setWaitingForOperand(true);
+  };
+
+  const memoryClear = () => {
+    setMemory(0);
+    setHistory(prev => ['Memory Cleared', ...prev.slice(0, 19)]);
+  };
+
+  const memoryAdd = () => {
+    setMemory(memory + parseFloat(display));
+    setHistory(prev => [`M+ ${display}`, ...prev.slice(0, 19)]);
   };
 
   const handleKeyPress = (e: KeyboardEvent) => {
@@ -201,16 +251,23 @@ const Calculator: React.FC<CalculatorProps> = ({ className = '' }) => {
     const num = parseFloat(value);
     if (isNaN(num)) return value;
     
-    // Format large numbers with scientific notation
-    if (Math.abs(num) >= 1e10 || (Math.abs(num) < 1e-6 && num !== 0)) {
-      return num.toExponential(6);
+    if (Math.abs(num) >= 1e15 || (Math.abs(num) < 1e-10 && num !== 0)) {
+      return num.toExponential(8);
     }
     
-    // Format with appropriate decimal places
-    return num.toString();
+    if (num % 1 === 0 && Math.abs(num) < 1e10) {
+      return num.toString();
+    }
+    
+    return parseFloat(num.toPrecision(12)).toString();
   };
 
   const basicButtons = [
+    { label: 'MC', action: memoryClear, className: 'bg-purple-500 hover:bg-purple-600 text-white text-xs' },
+    { label: 'MR', action: memoryRecall, className: 'bg-purple-500 hover:bg-purple-600 text-white text-xs' },
+    { label: 'M+', action: memoryAdd, className: 'bg-purple-500 hover:bg-purple-600 text-white text-xs' },
+    { label: 'MS', action: memoryStore, className: 'bg-purple-500 hover:bg-purple-600 text-white text-xs' },
+    
     { label: 'C', action: clear, className: 'bg-red-500 hover:bg-red-600 text-white' },
     { label: 'CE', action: clearEntry, className: 'bg-orange-500 hover:bg-orange-600 text-white' },
     { label: '⌫', action: () => {
@@ -238,25 +295,34 @@ const Calculator: React.FC<CalculatorProps> = ({ className = '' }) => {
     { label: '+', action: () => performOperation('+'), className: 'bg-primary hover:bg-primary-dark text-white' },
     
     { label: '±', action: () => setDisplay(String(-parseFloat(display))), className: 'bg-glass hover:bg-glass-hover' },
-    { label: '0', action: () => inputNumber('0'), className: 'bg-glass hover:bg-glass-hover' },
+    { label: '0', action: () => inputNumber('0'), className: 'bg-glass hover:bg-glass-hover col-span-2' },
     { label: '.', action: inputDecimal, className: 'bg-glass hover:bg-glass-hover' },
     { label: '=', action: performEquals, className: 'bg-green-500 hover:bg-green-600 text-white' },
   ];
 
   const scientificButtons = [
+    { label: angleMode, action: () => setAngleMode(angleMode === 'deg' ? 'rad' : 'deg') },
     { label: 'sin', action: () => performScientificOperation('sin') },
     { label: 'cos', action: () => performScientificOperation('cos') },
     { label: 'tan', action: () => performScientificOperation('tan') },
+    { label: 'asin', action: () => performScientificOperation('asin') },
+    { label: 'acos', action: () => performScientificOperation('acos') },
+    { label: 'atan', action: () => performScientificOperation('atan') },
     { label: 'log', action: () => performScientificOperation('log') },
     { label: 'ln', action: () => performScientificOperation('ln') },
+    { label: '10ˣ', action: () => performScientificOperation('10ˣ') },
+    { label: 'eˣ', action: () => performScientificOperation('eˣ') },
     { label: '√', action: () => performScientificOperation('sqrt') },
+    { label: '∛', action: () => performScientificOperation('∛') },
     { label: 'x²', action: () => performScientificOperation('x²') },
     { label: 'x³', action: () => performScientificOperation('x³') },
-    { label: '^', action: () => performOperation('^') },
+    { label: 'xʸ', action: () => performOperation('xʸ') },
     { label: '!', action: () => performScientificOperation('!') },
     { label: 'π', action: () => performScientificOperation('π') },
     { label: 'e', action: () => performScientificOperation('e') },
     { label: '1/x', action: () => performScientificOperation('1/x') },
+    { label: 'abs', action: () => performScientificOperation('abs') },
+    { label: 'rand', action: () => performScientificOperation('rand') },
     { label: '%', action: () => performOperation('%') },
   ];
 
@@ -265,9 +331,19 @@ const Calculator: React.FC<CalculatorProps> = ({ className = '' }) => {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <CalcIcon className="w-5 h-5 text-primary" />
-          <h3 className="orbitron text-lg font-bold text-secondary">Calculator</h3>
+          <h3 className="orbitron text-lg font-bold text-secondary">Advanced Calculator</h3>
         </div>
         <div className="flex gap-2">
+          <button
+            onClick={() => setAngleMode(angleMode === 'deg' ? 'rad' : 'deg')}
+            className={`px-2 py-1 text-xs rounded-lg transition-all ${
+              angleMode === 'deg' 
+                ? 'bg-primary text-white' 
+                : 'bg-glass hover:bg-glass-hover text-secondary'
+            }`}
+          >
+            {angleMode.toUpperCase()}
+          </button>
           <button
             onClick={() => setIsScientific(!isScientific)}
             className={`px-3 py-1 text-xs rounded-lg transition-all ${
@@ -276,6 +352,7 @@ const Calculator: React.FC<CalculatorProps> = ({ className = '' }) => {
                 : 'bg-glass hover:bg-glass-hover text-secondary'
             }`}
           >
+            <Brain className="w-3 h-3 inline mr-1" />
             {isScientific ? 'Basic' : 'Scientific'}
           </button>
           <button
@@ -286,6 +363,7 @@ const Calculator: React.FC<CalculatorProps> = ({ className = '' }) => {
                 : 'bg-glass hover:bg-glass-hover text-secondary'
             }`}
           >
+            <History className="w-3 h-3 inline mr-1" />
             History
           </button>
         </div>
@@ -299,19 +377,24 @@ const Calculator: React.FC<CalculatorProps> = ({ className = '' }) => {
               {previousValue} {operation}
             </div>
           )}
-          <div className="text-2xl font-mono text-secondary break-all">
+          <div className="text-2xl font-mono text-secondary break-all min-h-[2rem]">
             {formatDisplay(display)}
           </div>
+          {memory !== 0 && (
+            <div className="text-xs text-primary mt-1">
+              M: {memory}
+            </div>
+          )}
         </div>
       </div>
 
       {/* History Panel */}
       {showHistory && (
-        <div className="mb-4 p-3 bg-glass rounded-lg border border-primary/30 max-h-32 overflow-y-auto">
+        <div className="mb-4 p-3 bg-glass rounded-lg border border-primary/30 max-h-40 overflow-y-auto">
           <div className="flex items-center justify-between mb-2">
-            <h4 className="text-sm font-semibold text-secondary">History</h4>
+            <h4 className="text-sm font-semibold text-secondary">Calculation History</h4>
             <button
-              onClick={() => setHistory([])}
+              onClick={clearHistory}
               className="p-1 text-muted hover:text-secondary transition-all"
             >
               <RotateCcw className="w-3 h-3" />
@@ -324,10 +407,10 @@ const Calculator: React.FC<CalculatorProps> = ({ className = '' }) => {
               {history.map((entry, index) => (
                 <div
                   key={index}
-                  className="text-xs text-muted font-mono cursor-pointer hover:text-secondary transition-all"
+                  className="text-xs text-muted font-mono cursor-pointer hover:text-secondary transition-all p-1 rounded hover:bg-glass-hover"
                   onClick={() => {
                     const result = entry.split(' = ')[1];
-                    if (result) {
+                    if (result && !isNaN(parseFloat(result))) {
                       setDisplay(result);
                       setWaitingForOperand(true);
                     }
@@ -343,7 +426,7 @@ const Calculator: React.FC<CalculatorProps> = ({ className = '' }) => {
 
       {/* Scientific Functions */}
       {isScientific && (
-        <div className="mb-4 grid grid-cols-7 gap-2">
+        <div className="mb-4 grid grid-cols-6 gap-2">
           {scientificButtons.map((button, index) => (
             <button
               key={index}
@@ -365,7 +448,7 @@ const Calculator: React.FC<CalculatorProps> = ({ className = '' }) => {
             onClick={button.action}
             className={`p-3 rounded-lg transition-all hover:scale-105 font-semibold text-secondary ${
               button.className || 'bg-glass hover:bg-glass-hover'
-            }`}
+            } ${button.label === '0' ? 'col-span-2' : ''}`}
           >
             {button.label}
           </button>
@@ -374,7 +457,8 @@ const Calculator: React.FC<CalculatorProps> = ({ className = '' }) => {
 
       {/* Keyboard Shortcuts Info */}
       <div className="mt-4 text-xs text-muted text-center">
-        <p>Keyboard shortcuts: Numbers, +, -, *, /, Enter (=), Esc (Clear), Backspace</p>
+        <p>Keyboard: Numbers, +, -, *, /, Enter (=), Esc (Clear), Backspace</p>
+        {isScientific && <p>Scientific mode: Advanced mathematical functions available</p>}
       </div>
     </div>
   );
