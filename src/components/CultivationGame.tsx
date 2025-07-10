@@ -211,6 +211,8 @@ const CultivationGame: React.FC = () => {
       icon: "⚡",
       unlockMessage: "You transcend tribulations through sheer will!"
     },
+    
+    // Immortal Realms
     { 
       name: "Earth Immortal", 
       description: "First step into true immortality", 
@@ -234,6 +236,28 @@ const CultivationGame: React.FC = () => {
       unlockMessage: "The heavens acknowledge your ascension!"
     },
     { 
+      name: "True Immortal", 
+      description: "Achieved true immortality beyond death", 
+      experienceRequired: 13500, 
+      tribulationChance: 0.62, 
+      lifespanBonus: 4500, 
+      statMultiplier: 15, 
+      color: "#FFE4B5", 
+      icon: "✨",
+      unlockMessage: "You have achieved true immortality!"
+    },
+    { 
+      name: "Spirit Immortal", 
+      description: "Immortal spirit transcending physical form", 
+      experienceRequired: 18000, 
+      tribulationChance: 0.64, 
+      lifespanBonus: 6000, 
+      statMultiplier: 18, 
+      color: "#E6E6FA", 
+      icon: "👻",
+      unlockMessage: "Your spirit transcends physical limitations!"
+    },
+    { 
       name: "Mystic Immortal", 
       description: "Master of mystical arts and ancient secrets", 
       experienceRequired: 13000, 
@@ -243,6 +267,17 @@ const CultivationGame: React.FC = () => {
       color: "#9932CC", 
       icon: "🔯",
       unlockMessage: "Ancient mysteries reveal themselves to you!"
+    },
+    { 
+      name: "Profound Immortal", 
+      description: "Understanding profound mysteries of existence", 
+      experienceRequired: 25000, 
+      tribulationChance: 0.66, 
+      lifespanBonus: 8000, 
+      statMultiplier: 22, 
+      color: "#4B0082", 
+      icon: "🌀",
+      unlockMessage: "Profound mysteries of existence unfold before you!"
     },
     { 
       name: "Golden Immortal", 
@@ -256,6 +291,17 @@ const CultivationGame: React.FC = () => {
       unlockMessage: "Golden light emanates from your very being!"
     },
     { 
+      name: "Supreme Immortal", 
+      description: "Supreme among all immortals", 
+      experienceRequired: 35000, 
+      tribulationChance: 0.68, 
+      lifespanBonus: 12000, 
+      statMultiplier: 28, 
+      color: "#FF1493", 
+      icon: "⭐",
+      unlockMessage: "You stand supreme among all immortals!"
+    },
+    { 
       name: "Taiyi Golden Immortal", 
       description: "Supreme golden immortal of the highest order", 
       experienceRequired: 22000, 
@@ -267,6 +313,17 @@ const CultivationGame: React.FC = () => {
       unlockMessage: "You achieve the supreme golden immortal state!"
     },
     { 
+      name: "Xuanxian Immortal", 
+      description: "Mysterious immortal beyond comprehension", 
+      experienceRequired: 50000, 
+      tribulationChance: 0.72, 
+      lifespanBonus: 15000, 
+      statMultiplier: 35, 
+      color: "#8B008B", 
+      icon: "🔮",
+      unlockMessage: "You become a mysterious immortal beyond comprehension!"
+    },
+    { 
       name: "Daluo Golden Immortal", 
       description: "Transcendent golden immortal beyond time", 
       experienceRequired: 28000, 
@@ -276,6 +333,41 @@ const CultivationGame: React.FC = () => {
       color: "#FF6347", 
       icon: "✨",
       unlockMessage: "You transcend time itself!"
+    },
+    
+    // Saint Realms
+    { 
+      name: "Quasi-Saint Early", 
+      description: "Early stage quasi-saint power", 
+      experienceRequired: 70000, 
+      tribulationChance: 0.75, 
+      lifespanBonus: 20000, 
+      statMultiplier: 45, 
+      color: "#F0E68C", 
+      icon: "😇",
+      unlockMessage: "You enter the early stage of quasi-sainthood!"
+    },
+    { 
+      name: "Quasi-Saint Middle", 
+      description: "Middle stage quasi-saint mastery", 
+      experienceRequired: 95000, 
+      tribulationChance: 0.78, 
+      lifespanBonus: 25000, 
+      statMultiplier: 55, 
+      color: "#DDA0DD", 
+      icon: "🌟",
+      unlockMessage: "Your quasi-saint mastery reaches the middle stage!"
+    },
+    { 
+      name: "Quasi-Saint Late", 
+      description: "Late stage quasi-saint perfection", 
+      experienceRequired: 125000, 
+      tribulationChance: 0.82, 
+      lifespanBonus: 30000, 
+      statMultiplier: 65, 
+      color: "#FFB6C1", 
+      icon: "💫",
+      unlockMessage: "You perfect the late stage of quasi-sainthood!"
     },
     { 
       name: "Quasi-Saint", 
@@ -289,6 +381,39 @@ const CultivationGame: React.FC = () => {
       unlockMessage: "You stand at the threshold of sainthood!"
     },
     { 
+      name: "Saint Early", 
+      description: "Early stage saint with divine power", 
+      experienceRequired: 160000, 
+      tribulationChance: 0.85, 
+      lifespanBonus: 40000, 
+      statMultiplier: 80, 
+      color: "#FFFACD", 
+      icon: "👼",
+      unlockMessage: "You achieve early stage sainthood with divine power!"
+    },
+    { 
+      name: "Saint Middle", 
+      description: "Middle stage saint commanding respect", 
+      experienceRequired: 200000, 
+      tribulationChance: 0.87, 
+      lifespanBonus: 50000, 
+      statMultiplier: 100, 
+      color: "#F5F5DC", 
+      icon: "🕊️",
+      unlockMessage: "Your sainthood commands universal respect!"
+    },
+    { 
+      name: "Saint Late", 
+      description: "Late stage saint approaching perfection", 
+      experienceRequired: 250000, 
+      tribulationChance: 0.89, 
+      lifespanBonus: 60000, 
+      statMultiplier: 120, 
+      color: "#FFEFD5", 
+      icon: "🌅",
+      unlockMessage: "You approach the perfection of sainthood!"
+    },
+    { 
       name: "Saint", 
       description: "A true saint of cultivation, revered by all", 
       experienceRequired: 45000, 
@@ -298,6 +423,52 @@ const CultivationGame: React.FC = () => {
       color: "#FFFFFF", 
       icon: "👼",
       unlockMessage: "You achieve sainthood! All beings revere you!"
+    },
+    { 
+      name: "Great Saint", 
+      description: "Saint of immense power and wisdom", 
+      experienceRequired: 320000, 
+      tribulationChance: 0.91, 
+      lifespanBonus: 80000, 
+      statMultiplier: 150, 
+      color: "#F8F8FF", 
+      icon: "🌈",
+      unlockMessage: "You become a Great Saint of immense power!"
+    },
+    { 
+      name: "Saint King", 
+      description: "King among saints, ruler of domains", 
+      experienceRequired: 400000, 
+      tribulationChance: 0.92, 
+      lifespanBonus: 100000, 
+      statMultiplier: 180, 
+      color: "#E0E0E0", 
+      icon: "👑",
+      unlockMessage: "You rule as a Saint King over vast domains!"
+    },
+    { 
+      name: "Saint Emperor", 
+      description: "Emperor of saints, cosmic authority", 
+      experienceRequired: 500000, 
+      tribulationChance: 0.93, 
+      lifespanBonus: 120000, 
+      statMultiplier: 220, 
+      color: "#D3D3D3", 
+      icon: "🏛️",
+      unlockMessage: "You wield cosmic authority as a Saint Emperor!"
+    },
+    
+    // Celestial Realms
+    { 
+      name: "Celestial King", 
+      description: "King of celestial beings", 
+      experienceRequired: 650000, 
+      tribulationChance: 0.94, 
+      lifespanBonus: 150000, 
+      statMultiplier: 280, 
+      color: "#87CEFA", 
+      icon: "👑",
+      unlockMessage: "You reign as King of celestial beings!"
     },
     { 
       name: "Celestial Emperor", 
@@ -311,6 +482,41 @@ const CultivationGame: React.FC = () => {
       unlockMessage: "You rule over the celestial realms!"
     },
     { 
+      name: "Heavenly Monarch", 
+      description: "Monarch of the heavenly court", 
+      experienceRequired: 850000, 
+      tribulationChance: 0.95, 
+      lifespanBonus: 200000, 
+      statMultiplier: 350, 
+      color: "#6495ED", 
+      icon: "🏰",
+      unlockMessage: "You rule as Monarch of the heavenly court!"
+    },
+    { 
+      name: "Cosmic Overlord", 
+      description: "Overlord commanding cosmic forces", 
+      experienceRequired: 1100000, 
+      tribulationChance: 0.96, 
+      lifespanBonus: 250000, 
+      statMultiplier: 450, 
+      color: "#4682B4", 
+      icon: "🌌",
+      unlockMessage: "You command cosmic forces as an Overlord!"
+    },
+    
+    // Divine Realms
+    { 
+      name: "Divine King", 
+      description: "King with divine authority", 
+      experienceRequired: 1400000, 
+      tribulationChance: 0.96, 
+      lifespanBonus: 300000, 
+      statMultiplier: 550, 
+      color: "#FFD700", 
+      icon: "👑",
+      unlockMessage: "You wield divine authority as a Divine King!"
+    },
+    { 
       name: "Divine Sovereign", 
       description: "Sovereign of divine power and cosmic law", 
       experienceRequired: 80000, 
@@ -320,6 +526,41 @@ const CultivationGame: React.FC = () => {
       color: "#8B008B", 
       icon: "🔱",
       unlockMessage: "Divine power flows through your very essence!"
+    },
+    { 
+      name: "Divine Emperor", 
+      description: "Emperor wielding divine might", 
+      experienceRequired: 1800000, 
+      tribulationChance: 0.97, 
+      lifespanBonus: 400000, 
+      statMultiplier: 700, 
+      color: "#DAA520", 
+      icon: "⚡",
+      unlockMessage: "You wield divine might as a Divine Emperor!"
+    },
+    { 
+      name: "Supreme Divine", 
+      description: "Supreme being of divine essence", 
+      experienceRequired: 2300000, 
+      tribulationChance: 0.97, 
+      lifespanBonus: 500000, 
+      statMultiplier: 850, 
+      color: "#B8860B", 
+      icon: "🌟",
+      unlockMessage: "You become a Supreme Divine being!"
+    },
+    
+    // Primordial Realms
+    { 
+      name: "Primordial King", 
+      description: "King from primordial times", 
+      experienceRequired: 3000000, 
+      tribulationChance: 0.98, 
+      lifespanBonus: 700000, 
+      statMultiplier: 1000, 
+      color: "#2F2F2F", 
+      icon: "🗿",
+      unlockMessage: "You rule as a King from primordial times!"
     },
     { 
       name: "Primordial Ancestor", 
@@ -333,6 +574,63 @@ const CultivationGame: React.FC = () => {
       unlockMessage: "You become one with primordial forces!"
     },
     { 
+      name: "Primordial Emperor", 
+      description: "Emperor of primordial chaos", 
+      experienceRequired: 3800000, 
+      tribulationChance: 0.98, 
+      lifespanBonus: 900000, 
+      statMultiplier: 1200, 
+      color: "#1C1C1C", 
+      icon: "👑",
+      unlockMessage: "You rule as Emperor of primordial chaos!"
+    },
+    { 
+      name: "Primordial Sovereign", 
+      description: "Sovereign of all primordial forces", 
+      experienceRequired: 4800000, 
+      tribulationChance: 0.985, 
+      lifespanBonus: 1200000, 
+      statMultiplier: 1500, 
+      color: "#0D0D0D", 
+      icon: "🌀",
+      unlockMessage: "You become Sovereign of all primordial forces!"
+    },
+    
+    // Chaos Realms
+    { 
+      name: "Chaos Initiate", 
+      description: "Initiate into the mysteries of chaos", 
+      experienceRequired: 6000000, 
+      tribulationChance: 0.985, 
+      lifespanBonus: 1500000, 
+      statMultiplier: 1800, 
+      color: "#4B0082", 
+      icon: "🌀",
+      unlockMessage: "You are initiated into the mysteries of chaos!"
+    },
+    { 
+      name: "Chaos Adept", 
+      description: "Adept manipulator of chaotic forces", 
+      experienceRequired: 7500000, 
+      tribulationChance: 0.99, 
+      lifespanBonus: 2000000, 
+      statMultiplier: 2200, 
+      color: "#8B008B", 
+      icon: "⚡",
+      unlockMessage: "You become an adept manipulator of chaotic forces!"
+    },
+    { 
+      name: "Chaos Master", 
+      description: "Master of chaotic energies", 
+      experienceRequired: 9500000, 
+      tribulationChance: 0.99, 
+      lifespanBonus: 2500000, 
+      statMultiplier: 2700, 
+      color: "#9400D3", 
+      icon: "🔮",
+      unlockMessage: "You master the chaotic energies of creation!"
+    },
+    { 
       name: "Chaos Lord", 
       description: "Master of primordial chaos and creation", 
       experienceRequired: 200000, 
@@ -342,6 +640,63 @@ const CultivationGame: React.FC = () => {
       color: "#000000", 
       icon: "🌀",
       unlockMessage: "Chaos bends to your will!"
+    },
+    { 
+      name: "Chaos Sovereign", 
+      description: "Sovereign ruling over chaos itself", 
+      experienceRequired: 12000000, 
+      tribulationChance: 0.992, 
+      lifespanBonus: 3000000, 
+      statMultiplier: 3300, 
+      color: "#FF00FF", 
+      icon: "👑",
+      unlockMessage: "You rule as Sovereign over chaos itself!"
+    },
+    { 
+      name: "Chaos Emperor", 
+      description: "Emperor commanding all chaotic realms", 
+      experienceRequired: 15000000, 
+      tribulationChance: 0.993, 
+      lifespanBonus: 4000000, 
+      statMultiplier: 4000, 
+      color: "#DC143C", 
+      icon: "⚡",
+      unlockMessage: "You command all chaotic realms as Emperor!"
+    },
+    
+    // Void Realms
+    { 
+      name: "Void Walker", 
+      description: "Walker between void dimensions", 
+      experienceRequired: 19000000, 
+      tribulationChance: 0.994, 
+      lifespanBonus: 5000000, 
+      statMultiplier: 5000, 
+      color: "#191970", 
+      icon: "🚶",
+      unlockMessage: "You walk between void dimensions!"
+    },
+    { 
+      name: "Void Master", 
+      description: "Master of void manipulation", 
+      experienceRequired: 24000000, 
+      tribulationChance: 0.994, 
+      lifespanBonus: 6500000, 
+      statMultiplier: 6000, 
+      color: "#000080", 
+      icon: "🌌",
+      unlockMessage: "You master the manipulation of the void!"
+    },
+    { 
+      name: "Void Lord", 
+      description: "Lord ruling void dimensions", 
+      experienceRequired: 30000000, 
+      tribulationChance: 0.995, 
+      lifespanBonus: 8000000, 
+      statMultiplier: 7500, 
+      color: "#0000CD", 
+      icon: "🕳️",
+      unlockMessage: "You rule as Lord of void dimensions!"
     },
     { 
       name: "Void Emperor", 
@@ -355,6 +710,63 @@ const CultivationGame: React.FC = () => {
       unlockMessage: "The void itself acknowledges your supremacy!"
     },
     { 
+      name: "Void Sovereign", 
+      description: "Sovereign of all void realms", 
+      experienceRequired: 38000000, 
+      tribulationChance: 0.996, 
+      lifespanBonus: 10000000, 
+      statMultiplier: 9000, 
+      color: "#000000", 
+      icon: "👑",
+      unlockMessage: "You become Sovereign of all void realms!"
+    },
+    
+    // Eternal Realms
+    { 
+      name: "Eternal Initiate", 
+      description: "Initiate into eternal mysteries", 
+      experienceRequired: 48000000, 
+      tribulationChance: 0.996, 
+      lifespanBonus: 12000000, 
+      statMultiplier: 11000, 
+      color: "#FF1493", 
+      icon: "⭐",
+      unlockMessage: "You are initiated into eternal mysteries!"
+    },
+    { 
+      name: "Eternal Adept", 
+      description: "Adept of eternal principles", 
+      experienceRequired: 60000000, 
+      tribulationChance: 0.997, 
+      lifespanBonus: 15000000, 
+      statMultiplier: 13000, 
+      color: "#FF69B4", 
+      icon: "✨",
+      unlockMessage: "You become an adept of eternal principles!"
+    },
+    { 
+      name: "Eternal Master", 
+      description: "Master of eternal forces", 
+      experienceRequired: 75000000, 
+      tribulationChance: 0.997, 
+      lifespanBonus: 18000000, 
+      statMultiplier: 16000, 
+      color: "#FFB6C1", 
+      icon: "🌟",
+      unlockMessage: "You master the eternal forces of existence!"
+    },
+    { 
+      name: "Eternal Lord", 
+      description: "Lord of eternal domains", 
+      experienceRequired: 95000000, 
+      tribulationChance: 0.997, 
+      lifespanBonus: 22000000, 
+      statMultiplier: 20000, 
+      color: "#FFC0CB", 
+      icon: "👑",
+      unlockMessage: "You rule as Lord of eternal domains!"
+    },
+    { 
       name: "Eternal Sovereign", 
       description: "Eternal ruler beyond the constraints of time", 
       experienceRequired: 600000, 
@@ -364,6 +776,232 @@ const CultivationGame: React.FC = () => {
       color: "#FF1493", 
       icon: "♾️",
       unlockMessage: "You transcend time and become eternal!"
+    },
+    { 
+      name: "Eternal Emperor", 
+      description: "Emperor of all eternal realms", 
+      experienceRequired: 120000000, 
+      tribulationChance: 0.998, 
+      lifespanBonus: 28000000, 
+      statMultiplier: 25000, 
+      color: "#FF1493", 
+      icon: "⚡",
+      unlockMessage: "You rule as Emperor of all eternal realms!"
+    },
+    
+    // Transcendent Realms
+    { 
+      name: "Transcendent Being", 
+      description: "Being that transcends all limitations", 
+      experienceRequired: 150000000, 
+      tribulationChance: 0.998, 
+      lifespanBonus: 35000000, 
+      statMultiplier: 30000, 
+      color: "#FFFFFF", 
+      icon: "🌈",
+      unlockMessage: "You transcend all limitations of existence!"
+    },
+    { 
+      name: "Transcendent Lord", 
+      description: "Lord of transcendent power", 
+      experienceRequired: 190000000, 
+      tribulationChance: 0.998, 
+      lifespanBonus: 45000000, 
+      statMultiplier: 38000, 
+      color: "#F0F8FF", 
+      icon: "👑",
+      unlockMessage: "You wield transcendent power as a Lord!"
+    },
+    { 
+      name: "Transcendent Emperor", 
+      description: "Emperor beyond all understanding", 
+      experienceRequired: 240000000, 
+      tribulationChance: 0.999, 
+      lifespanBonus: 55000000, 
+      statMultiplier: 48000, 
+      color: "#E6E6FA", 
+      icon: "⚡",
+      unlockMessage: "You become an Emperor beyond all understanding!"
+    },
+    { 
+      name: "Transcendent Sovereign", 
+      description: "Sovereign of transcendent realms", 
+      experienceRequired: 300000000, 
+      tribulationChance: 0.999, 
+      lifespanBonus: 70000000, 
+      statMultiplier: 60000, 
+      color: "#F5F5F5", 
+      icon: "🌟",
+      unlockMessage: "You rule as Sovereign of transcendent realms!"
+    },
+    
+    // Omnipotent Realms
+    { 
+      name: "Omnipotent Initiate", 
+      description: "Initiate approaching omnipotence", 
+      experienceRequired: 380000000, 
+      tribulationChance: 0.999, 
+      lifespanBonus: 90000000, 
+      statMultiplier: 75000, 
+      color: "#FFFACD", 
+      icon: "⭐",
+      unlockMessage: "You approach the threshold of omnipotence!"
+    },
+    { 
+      name: "Omnipotent Adept", 
+      description: "Adept wielding omnipotent power", 
+      experienceRequired: 480000000, 
+      tribulationChance: 0.9995, 
+      lifespanBonus: 120000000, 
+      statMultiplier: 95000, 
+      color: "#FFFFE0", 
+      icon: "✨",
+      unlockMessage: "You wield omnipotent power as an Adept!"
+    },
+    { 
+      name: "Omnipotent Master", 
+      description: "Master of omnipotent forces", 
+      experienceRequired: 600000000, 
+      tribulationChance: 0.9995, 
+      lifespanBonus: 150000000, 
+      statMultiplier: 120000, 
+      color: "#FFFFF0", 
+      icon: "🌟",
+      unlockMessage: "You master omnipotent forces!"
+    },
+    { 
+      name: "Omnipotent Lord", 
+      description: "Lord with omnipotent authority", 
+      experienceRequired: 750000000, 
+      tribulationChance: 0.9998, 
+      lifespanBonus: 200000000, 
+      statMultiplier: 150000, 
+      color: "#FFFAF0", 
+      icon: "👑",
+      unlockMessage: "You wield omnipotent authority as a Lord!"
+    },
+    { 
+      name: "Omnipotent Emperor", 
+      description: "Emperor of omnipotent might", 
+      experienceRequired: 950000000, 
+      tribulationChance: 0.9998, 
+      lifespanBonus: 250000000, 
+      statMultiplier: 200000, 
+      color: "#FFF8DC", 
+      icon: "⚡",
+      unlockMessage: "You rule with omnipotent might as Emperor!"
+    },
+    { 
+      name: "Omnipotent Sovereign", 
+      description: "Sovereign of all omnipotent realms", 
+      experienceRequired: 1200000000, 
+      tribulationChance: 0.9999, 
+      lifespanBonus: 350000000, 
+      statMultiplier: 250000, 
+      color: "#FFFFFF", 
+      icon: "🌈",
+      unlockMessage: "You become Sovereign of all omnipotent realms!"
+    },
+    
+    // Ultimate Dao Realms
+    { 
+      name: "Dao Seeker", 
+      description: "Seeker of the ultimate Dao", 
+      experienceRequired: 1500000000, 
+      tribulationChance: 0.9999, 
+      lifespanBonus: 500000000, 
+      statMultiplier: 350000, 
+      color: "#000000", 
+      icon: "🔍",
+      unlockMessage: "You seek the ultimate Dao!"
+    },
+    { 
+      name: "Dao Comprehender", 
+      description: "One who comprehends the Dao", 
+      experienceRequired: 2000000000, 
+      tribulationChance: 0.9999, 
+      lifespanBonus: 750000000, 
+      statMultiplier: 500000, 
+      color: "#2F2F2F", 
+      icon: "🧠",
+      unlockMessage: "You comprehend the mysteries of the Dao!"
+    },
+    { 
+      name: "Dao Master", 
+      description: "Master of Dao principles", 
+      experienceRequired: 2500000000, 
+      tribulationChance: 0.99995, 
+      lifespanBonus: 1000000000, 
+      statMultiplier: 750000, 
+      color: "#4F4F4F", 
+      icon: "⚡",
+      unlockMessage: "You master the principles of the Dao!"
+    },
+    { 
+      name: "Dao Lord", 
+      description: "Lord commanding the Dao", 
+      experienceRequired: 3200000000, 
+      tribulationChance: 0.99995, 
+      lifespanBonus: 1500000000, 
+      statMultiplier: 1000000, 
+      color: "#6F6F6F", 
+      icon: "👑",
+      unlockMessage: "You command the Dao as a Lord!"
+    },
+    { 
+      name: "Dao Emperor", 
+      description: "Emperor of Dao mastery", 
+      experienceRequired: 4000000000, 
+      tribulationChance: 0.99998, 
+      lifespanBonus: 2000000000, 
+      statMultiplier: 1500000, 
+      color: "#8F8F8F", 
+      icon: "⚡",
+      unlockMessage: "You rule as Emperor of Dao mastery!"
+    },
+    { 
+      name: "Dao Sovereign", 
+      description: "Sovereign of all Dao", 
+      experienceRequired: 5000000000, 
+      tribulationChance: 0.99998, 
+      lifespanBonus: 3000000000, 
+      statMultiplier: 2000000, 
+      color: "#AAAAAA", 
+      icon: "🌟",
+      unlockMessage: "You become Sovereign of all Dao!"
+    },
+    { 
+      name: "Ultimate Dao", 
+      description: "Unity with the ultimate Dao", 
+      experienceRequired: 6500000000, 
+      tribulationChance: 0.99999, 
+      lifespanBonus: 5000000000, 
+      statMultiplier: 3000000, 
+      color: "#CCCCCC", 
+      icon: "☯️",
+      unlockMessage: "You achieve unity with the ultimate Dao!"
+    },
+    { 
+      name: "Eternal Dao", 
+      description: "Eternal existence as the Dao", 
+      experienceRequired: 8500000000, 
+      tribulationChance: 0.99999, 
+      lifespanBonus: 10000000000, 
+      statMultiplier: 5000000, 
+      color: "#FFFFFF", 
+      icon: "♾️",
+      unlockMessage: "You become eternal existence as the Dao!"
+    },
+    { 
+      name: "Infinite Dao", 
+      description: "Infinite power of the Dao", 
+      experienceRequired: 12000000000, 
+      tribulationChance: 1, 
+      lifespanBonus: 50000000000, 
+      statMultiplier: 10000000, 
+      color: "#RAINBOW", 
+      icon: "🌈",
+      unlockMessage: "You achieve infinite power of the Dao!"
     },
     { 
       name: "Omnipotent Dao", 
