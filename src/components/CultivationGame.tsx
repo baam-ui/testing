@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Zap, Heart, Brain, Star, Sparkles, Save, RotateCcw, Play, Pause, Clock, Flame, Shield, Sword, Crown, Eye } from 'lucide-react';
+import { Zap, Heart, Brain, Star, Sparkles, Save, RotateCcw, Play, Pause, Clock, Flame, Shield, Sword, Crown, Eye, Trophy, Gift, Scroll, Gem } from 'lucide-react';
 
 interface Player {
   name: string;
@@ -30,6 +30,9 @@ interface Player {
     speed: number;
     wisdom: number;
   };
+  totalExperience: number;
+  breakthroughAttempts: number;
+  successfulBreakthroughs: number;
 }
 
 interface Realm {
@@ -41,6 +44,7 @@ interface Realm {
   statMultiplier: number;
   color: string;
   icon: string;
+  unlockMessage: string;
 }
 
 interface Encounter {
@@ -54,6 +58,8 @@ interface Encounter {
     reward?: string;
     risk?: string;
     statBonus?: { [key: string]: number };
+    experienceGain?: number;
+    pillReward?: string;
   }[];
 }
 
@@ -64,6 +70,16 @@ interface Technique {
   cost: number;
   effect: string;
   unlockRealm: number;
+  category: 'combat' | 'cultivation' | 'utility' | 'legendary';
+}
+
+interface Artifact {
+  id: string;
+  name: string;
+  description: string;
+  rarity: 'common' | 'rare' | 'epic' | 'legendary' | 'divine';
+  effects: string[];
+  unlockRealm: number;
 }
 
 const CultivationGame: React.FC = () => {
@@ -73,102 +89,609 @@ const CultivationGame: React.FC = () => {
   const [gameLog, setGameLog] = useState<string[]>([]);
   const [showTribulation, setShowTribulation] = useState(false);
   const [tribulationProgress, setTribulationProgress] = useState(0);
-  const [showTechniques, setShowTechniques] = useState(false);
-  const [selectedTab, setSelectedTab] = useState<'stats' | 'techniques' | 'artifacts' | 'achievements'>('stats');
+  const [selectedTab, setSelectedTab] = useState<'stats' | 'techniques' | 'artifacts' | 'achievements' | 'pills'>('stats');
   const [offlineProgress, setOfflineProgress] = useState<{
     timeAway: number;
     experienceGained: number;
     breakthroughs: string[];
+    encountersFound: number;
+    pillsFound: string[];
   } | null>(null);
+  const [showRealmInfo, setShowRealmInfo] = useState(false);
+  const [animatingStats, setAnimatingStats] = useState<string[]>([]);
 
   const realms: Realm[] = [
-    { name: "Mortal", description: "An ordinary person beginning their journey", experienceRequired: 0, tribulationChance: 0, lifespanBonus: 0, statMultiplier: 1, color: "#8B4513", icon: "👤" },
-    { name: "Qi Refining", description: "Learning to sense and gather Qi", experienceRequired: 100, tribulationChance: 0.1, lifespanBonus: 20, statMultiplier: 1.2, color: "#32CD32", icon: "🌱" },
-    { name: "Foundation Establishment", description: "Building a solid cultivation foundation", experienceRequired: 300, tribulationChance: 0.15, lifespanBonus: 50, statMultiplier: 1.5, color: "#4169E1", icon: "🏗️" },
-    { name: "Core Formation", description: "Forming a golden core within", experienceRequired: 600, tribulationChance: 0.2, lifespanBonus: 100, statMultiplier: 2, color: "#FFD700", icon: "⚡" },
-    { name: "Nascent Soul", description: "Birth of the nascent soul", experienceRequired: 1000, tribulationChance: 0.25, lifespanBonus: 200, statMultiplier: 2.5, color: "#9370DB", icon: "👻" },
-    { name: "Soul Transformation", description: "Transforming the very essence of being", experienceRequired: 1500, tribulationChance: 0.3, lifespanBonus: 300, statMultiplier: 3, color: "#FF69B4", icon: "🔮" },
-    { name: "Void Refinement", description: "Refining oneself in the void", experienceRequired: 2200, tribulationChance: 0.35, lifespanBonus: 500, statMultiplier: 4, color: "#2F4F4F", icon: "🌌" },
-    { name: "Body Integration", description: "Perfect unity of body and soul", experienceRequired: 3000, tribulationChance: 0.4, lifespanBonus: 700, statMultiplier: 5, color: "#DC143C", icon: "💪" },
-    { name: "Mahayana", description: "The great vehicle to enlightenment", experienceRequired: 4000, tribulationChance: 0.45, lifespanBonus: 1000, statMultiplier: 6, color: "#FF4500", icon: "🚗" },
-    { name: "Tribulation Transcendence", description: "Transcending mortal tribulations", experienceRequired: 5500, tribulationChance: 0.5, lifespanBonus: 1500, statMultiplier: 8, color: "#8A2BE2", icon: "⚡" },
-    { name: "Earth Immortal", description: "First step into immortality", experienceRequired: 7500, tribulationChance: 0.55, lifespanBonus: 2000, statMultiplier: 10, color: "#228B22", icon: "🌍" },
-    { name: "Heaven Immortal", description: "Immortal of the heavenly realm", experienceRequired: 10000, tribulationChance: 0.6, lifespanBonus: 3000, statMultiplier: 12, color: "#87CEEB", icon: "☁️" },
-    { name: "Mystic Immortal", description: "Master of mystical arts", experienceRequired: 13000, tribulationChance: 0.65, lifespanBonus: 4000, statMultiplier: 15, color: "#9932CC", icon: "🔯" },
-    { name: "Golden Immortal", description: "Immortal with golden radiance", experienceRequired: 17000, tribulationChance: 0.7, lifespanBonus: 6000, statMultiplier: 18, color: "#FFD700", icon: "👑" },
-    { name: "Taiyi Golden Immortal", description: "Supreme golden immortal", experienceRequired: 22000, tribulationChance: 0.75, lifespanBonus: 8000, statMultiplier: 22, color: "#FF8C00", icon: "🌟" },
-    { name: "Daluo Golden Immortal", description: "Transcendent golden immortal", experienceRequired: 28000, tribulationChance: 0.8, lifespanBonus: 12000, statMultiplier: 28, color: "#FF6347", icon: "✨" },
-    { name: "Quasi-Saint", description: "Almost a saint, but not quite", experienceRequired: 35000, tribulationChance: 0.85, lifespanBonus: 15000, statMultiplier: 35, color: "#F0E68C", icon: "😇" },
-    { name: "Saint", description: "A true saint of cultivation", experienceRequired: 45000, tribulationChance: 0.9, lifespanBonus: 20000, statMultiplier: 45, color: "#FFFFFF", icon: "👼" },
-    { name: "Celestial Emperor", description: "Ruler of celestial realms", experienceRequired: 60000, tribulationChance: 0.95, lifespanBonus: 30000, statMultiplier: 60, color: "#4B0082", icon: "👑" },
-    { name: "Divine Sovereign", description: "Sovereign of divine power", experienceRequired: 80000, tribulationChance: 0.98, lifespanBonus: 50000, statMultiplier: 80, color: "#8B008B", icon: "🔱" },
-    { name: "Primordial Ancestor", description: "Ancient being from primordial times", experienceRequired: 120000, tribulationChance: 0.99, lifespanBonus: 100000, statMultiplier: 120, color: "#2F2F2F", icon: "🗿" },
-    { name: "Chaos Lord", description: "Master of primordial chaos", experienceRequired: 200000, tribulationChance: 0.995, lifespanBonus: 200000, statMultiplier: 200, color: "#000000", icon: "🌀" },
-    { name: "Void Emperor", description: "Emperor of the endless void", experienceRequired: 350000, tribulationChance: 0.998, lifespanBonus: 500000, statMultiplier: 350, color: "#191970", icon: "🕳️" },
-    { name: "Eternal Sovereign", description: "Eternal ruler beyond time", experienceRequired: 600000, tribulationChance: 0.999, lifespanBonus: 1000000, statMultiplier: 600, color: "#FF1493", icon: "♾️" },
-    { name: "Omnipotent Dao", description: "One with the eternal Dao", experienceRequired: 1000000, tribulationChance: 1, lifespanBonus: 10000000, statMultiplier: 1000, color: "#RAINBOW", icon: "☯️" }
+    { 
+      name: "Mortal", 
+      description: "An ordinary person beginning their journey into cultivation", 
+      experienceRequired: 0, 
+      tribulationChance: 0, 
+      lifespanBonus: 0, 
+      statMultiplier: 1, 
+      color: "#8B4513", 
+      icon: "👤",
+      unlockMessage: "Your cultivation journey begins..."
+    },
+    { 
+      name: "Qi Refining", 
+      description: "Learning to sense and gather the mystical energy of Qi", 
+      experienceRequired: 100, 
+      tribulationChance: 0.1, 
+      lifespanBonus: 20, 
+      statMultiplier: 1.2, 
+      color: "#32CD32", 
+      icon: "🌱",
+      unlockMessage: "You can now sense the flow of Qi around you!"
+    },
+    { 
+      name: "Foundation Establishment", 
+      description: "Building a solid foundation for future cultivation", 
+      experienceRequired: 300, 
+      tribulationChance: 0.15, 
+      lifespanBonus: 50, 
+      statMultiplier: 1.5, 
+      color: "#4169E1", 
+      icon: "🏗️",
+      unlockMessage: "Your foundation is now solid as a mountain!"
+    },
+    { 
+      name: "Core Formation", 
+      description: "Forming a golden core within your dantian", 
+      experienceRequired: 600, 
+      tribulationChance: 0.2, 
+      lifespanBonus: 100, 
+      statMultiplier: 2, 
+      color: "#FFD700", 
+      icon: "⚡",
+      unlockMessage: "A golden core forms within you, radiating power!"
+    },
+    { 
+      name: "Nascent Soul", 
+      description: "Birth of the nascent soul, a miniature version of yourself", 
+      experienceRequired: 1000, 
+      tribulationChance: 0.25, 
+      lifespanBonus: 200, 
+      statMultiplier: 2.5, 
+      color: "#9370DB", 
+      icon: "👻",
+      unlockMessage: "Your nascent soul awakens, granting spiritual sight!"
+    },
+    { 
+      name: "Soul Transformation", 
+      description: "Transforming the very essence of your being", 
+      experienceRequired: 1500, 
+      tribulationChance: 0.3, 
+      lifespanBonus: 300, 
+      statMultiplier: 3, 
+      color: "#FF69B4", 
+      icon: "🔮",
+      unlockMessage: "Your soul transforms, becoming one with the Dao!"
+    },
+    { 
+      name: "Void Refinement", 
+      description: "Refining yourself in the endless void", 
+      experienceRequired: 2200, 
+      tribulationChance: 0.35, 
+      lifespanBonus: 500, 
+      statMultiplier: 4, 
+      color: "#2F4F4F", 
+      icon: "🌌",
+      unlockMessage: "You step into the void and emerge refined!"
+    },
+    { 
+      name: "Body Integration", 
+      description: "Perfect unity of body, soul, and spirit", 
+      experienceRequired: 3000, 
+      tribulationChance: 0.4, 
+      lifespanBonus: 700, 
+      statMultiplier: 5, 
+      color: "#DC143C", 
+      icon: "💪",
+      unlockMessage: "Body and soul unite in perfect harmony!"
+    },
+    { 
+      name: "Mahayana", 
+      description: "The great vehicle to enlightenment", 
+      experienceRequired: 4000, 
+      tribulationChance: 0.45, 
+      lifespanBonus: 1000, 
+      statMultiplier: 6, 
+      color: "#FF4500", 
+      icon: "🚗",
+      unlockMessage: "You board the great vehicle to enlightenment!"
+    },
+    { 
+      name: "Tribulation Transcendence", 
+      description: "Transcending mortal tribulations through will", 
+      experienceRequired: 5500, 
+      tribulationChance: 0.5, 
+      lifespanBonus: 1500, 
+      statMultiplier: 8, 
+      color: "#8A2BE2", 
+      icon: "⚡",
+      unlockMessage: "You transcend tribulations through sheer will!"
+    },
+    { 
+      name: "Earth Immortal", 
+      description: "First step into true immortality", 
+      experienceRequired: 7500, 
+      tribulationChance: 0.55, 
+      lifespanBonus: 2000, 
+      statMultiplier: 10, 
+      color: "#228B22", 
+      icon: "🌍",
+      unlockMessage: "You achieve immortality and transcend mortality!"
+    },
+    { 
+      name: "Heaven Immortal", 
+      description: "Immortal of the heavenly realm", 
+      experienceRequired: 10000, 
+      tribulationChance: 0.6, 
+      lifespanBonus: 3000, 
+      statMultiplier: 12, 
+      color: "#87CEEB", 
+      icon: "☁️",
+      unlockMessage: "The heavens acknowledge your ascension!"
+    },
+    { 
+      name: "Mystic Immortal", 
+      description: "Master of mystical arts and ancient secrets", 
+      experienceRequired: 13000, 
+      tribulationChance: 0.65, 
+      lifespanBonus: 4000, 
+      statMultiplier: 15, 
+      color: "#9932CC", 
+      icon: "🔯",
+      unlockMessage: "Ancient mysteries reveal themselves to you!"
+    },
+    { 
+      name: "Golden Immortal", 
+      description: "Immortal with golden radiance and divine power", 
+      experienceRequired: 17000, 
+      tribulationChance: 0.7, 
+      lifespanBonus: 6000, 
+      statMultiplier: 18, 
+      color: "#FFD700", 
+      icon: "👑",
+      unlockMessage: "Golden light emanates from your very being!"
+    },
+    { 
+      name: "Taiyi Golden Immortal", 
+      description: "Supreme golden immortal of the highest order", 
+      experienceRequired: 22000, 
+      tribulationChance: 0.75, 
+      lifespanBonus: 8000, 
+      statMultiplier: 22, 
+      color: "#FF8C00", 
+      icon: "🌟",
+      unlockMessage: "You achieve the supreme golden immortal state!"
+    },
+    { 
+      name: "Daluo Golden Immortal", 
+      description: "Transcendent golden immortal beyond time", 
+      experienceRequired: 28000, 
+      tribulationChance: 0.8, 
+      lifespanBonus: 12000, 
+      statMultiplier: 28, 
+      color: "#FF6347", 
+      icon: "✨",
+      unlockMessage: "You transcend time itself!"
+    },
+    { 
+      name: "Quasi-Saint", 
+      description: "Almost a saint, standing at the threshold", 
+      experienceRequired: 35000, 
+      tribulationChance: 0.85, 
+      lifespanBonus: 15000, 
+      statMultiplier: 35, 
+      color: "#F0E68C", 
+      icon: "😇",
+      unlockMessage: "You stand at the threshold of sainthood!"
+    },
+    { 
+      name: "Saint", 
+      description: "A true saint of cultivation, revered by all", 
+      experienceRequired: 45000, 
+      tribulationChance: 0.9, 
+      lifespanBonus: 20000, 
+      statMultiplier: 45, 
+      color: "#FFFFFF", 
+      icon: "👼",
+      unlockMessage: "You achieve sainthood! All beings revere you!"
+    },
+    { 
+      name: "Celestial Emperor", 
+      description: "Ruler of celestial realms and cosmic forces", 
+      experienceRequired: 60000, 
+      tribulationChance: 0.95, 
+      lifespanBonus: 30000, 
+      statMultiplier: 60, 
+      color: "#4B0082", 
+      icon: "👑",
+      unlockMessage: "You rule over the celestial realms!"
+    },
+    { 
+      name: "Divine Sovereign", 
+      description: "Sovereign of divine power and cosmic law", 
+      experienceRequired: 80000, 
+      tribulationChance: 0.98, 
+      lifespanBonus: 50000, 
+      statMultiplier: 80, 
+      color: "#8B008B", 
+      icon: "🔱",
+      unlockMessage: "Divine power flows through your very essence!"
+    },
+    { 
+      name: "Primordial Ancestor", 
+      description: "Ancient being from the dawn of time", 
+      experienceRequired: 120000, 
+      tribulationChance: 0.99, 
+      lifespanBonus: 100000, 
+      statMultiplier: 120, 
+      color: "#2F2F2F", 
+      icon: "🗿",
+      unlockMessage: "You become one with primordial forces!"
+    },
+    { 
+      name: "Chaos Lord", 
+      description: "Master of primordial chaos and creation", 
+      experienceRequired: 200000, 
+      tribulationChance: 0.995, 
+      lifespanBonus: 200000, 
+      statMultiplier: 200, 
+      color: "#000000", 
+      icon: "🌀",
+      unlockMessage: "Chaos bends to your will!"
+    },
+    { 
+      name: "Void Emperor", 
+      description: "Emperor of the endless void between worlds", 
+      experienceRequired: 350000, 
+      tribulationChance: 0.998, 
+      lifespanBonus: 500000, 
+      statMultiplier: 350, 
+      color: "#191970", 
+      icon: "🕳️",
+      unlockMessage: "The void itself acknowledges your supremacy!"
+    },
+    { 
+      name: "Eternal Sovereign", 
+      description: "Eternal ruler beyond the constraints of time", 
+      experienceRequired: 600000, 
+      tribulationChance: 0.999, 
+      lifespanBonus: 1000000, 
+      statMultiplier: 600, 
+      color: "#FF1493", 
+      icon: "♾️",
+      unlockMessage: "You transcend time and become eternal!"
+    },
+    { 
+      name: "Omnipotent Dao", 
+      description: "One with the eternal Dao, omnipotent and omniscient", 
+      experienceRequired: 1000000, 
+      tribulationChance: 1, 
+      lifespanBonus: 10000000, 
+      statMultiplier: 1000, 
+      color: "#RAINBOW", 
+      icon: "☯️",
+      unlockMessage: "You become one with the Dao itself!"
+    }
   ];
 
   const techniques: Technique[] = [
-    { id: "basic_meditation", name: "Basic Meditation", description: "Fundamental breathing technique", cost: 10, effect: "+20% meditation efficiency", unlockRealm: 0 },
-    { id: "qi_gathering", name: "Qi Gathering Palm", description: "Gather qi from surroundings", cost: 50, effect: "+30% qi recovery", unlockRealm: 1 },
-    { id: "iron_body", name: "Iron Body Technique", description: "Strengthen physical form", cost: 100, effect: "+50% defense", unlockRealm: 2 },
-    { id: "lightning_step", name: "Lightning Step", description: "Move with lightning speed", cost: 200, effect: "+100% speed", unlockRealm: 3 },
-    { id: "soul_sight", name: "Soul Sight", description: "See through illusions", cost: 500, effect: "+200% wisdom", unlockRealm: 4 },
-    { id: "void_palm", name: "Void Palm Strike", description: "Strike through dimensions", cost: 1000, effect: "+500% attack", unlockRealm: 6 },
-    { id: "immortal_body", name: "Immortal Body", description: "Transcend mortal limitations", cost: 2000, effect: "+1000% all stats", unlockRealm: 10 },
-    { id: "dao_comprehension", name: "Dao Comprehension", description: "Understand the fundamental laws", cost: 5000, effect: "+10000% experience gain", unlockRealm: 17 }
+    { 
+      id: "basic_meditation", 
+      name: "Basic Meditation", 
+      description: "Fundamental breathing technique for cultivation", 
+      cost: 10, 
+      effect: "+20% meditation efficiency", 
+      unlockRealm: 0,
+      category: 'cultivation'
+    },
+    { 
+      id: "qi_gathering", 
+      name: "Qi Gathering Palm", 
+      description: "Gather qi from the surrounding environment", 
+      cost: 50, 
+      effect: "+30% qi recovery rate", 
+      unlockRealm: 1,
+      category: 'cultivation'
+    },
+    { 
+      id: "iron_body", 
+      name: "Iron Body Technique", 
+      description: "Strengthen your physical form like iron", 
+      cost: 100, 
+      effect: "+50% defense and health", 
+      unlockRealm: 2,
+      category: 'combat'
+    },
+    { 
+      id: "lightning_step", 
+      name: "Lightning Step", 
+      description: "Move with the speed of lightning", 
+      cost: 200, 
+      effect: "+100% speed and agility", 
+      unlockRealm: 3,
+      category: 'utility'
+    },
+    { 
+      id: "soul_sight", 
+      name: "Soul Sight", 
+      description: "See through illusions and perceive truth", 
+      cost: 500, 
+      effect: "+200% wisdom and perception", 
+      unlockRealm: 4,
+      category: 'utility'
+    },
+    { 
+      id: "void_palm", 
+      name: "Void Palm Strike", 
+      description: "Strike through dimensions with void energy", 
+      cost: 1000, 
+      effect: "+500% attack power", 
+      unlockRealm: 6,
+      category: 'combat'
+    },
+    { 
+      id: "immortal_body", 
+      name: "Immortal Body", 
+      description: "Transcend mortal limitations completely", 
+      cost: 2000, 
+      effect: "+1000% all stats", 
+      unlockRealm: 10,
+      category: 'legendary'
+    },
+    { 
+      id: "dao_comprehension", 
+      name: "Dao Comprehension", 
+      description: "Understand the fundamental laws of existence", 
+      cost: 5000, 
+      effect: "+10000% experience gain", 
+      unlockRealm: 17,
+      category: 'legendary'
+    },
+    { 
+      id: "heaven_defying", 
+      name: "Heaven Defying Art", 
+      description: "Defy the will of heaven itself", 
+      cost: 10000, 
+      effect: "Immunity to tribulations", 
+      unlockRealm: 20,
+      category: 'legendary'
+    }
+  ];
+
+  const artifacts: Artifact[] = [
+    {
+      id: "jade_pendant",
+      name: "Jade Pendant of Clarity",
+      description: "A simple jade pendant that clears the mind",
+      rarity: 'common',
+      effects: ["+10% meditation efficiency"],
+      unlockRealm: 0
+    },
+    {
+      id: "spirit_sword",
+      name: "Spirit Cleaving Sword",
+      description: "A sword imbued with spiritual energy",
+      rarity: 'rare',
+      effects: ["+50% attack power", "+25% speed"],
+      unlockRealm: 3
+    },
+    {
+      id: "phoenix_feather",
+      name: "Phoenix Feather Robe",
+      description: "Robes made from phoenix feathers",
+      rarity: 'epic',
+      effects: ["+100% health regeneration", "Fire immunity"],
+      unlockRealm: 8
+    },
+    {
+      id: "dragon_scale",
+      name: "Dragon Scale Armor",
+      description: "Armor crafted from ancient dragon scales",
+      rarity: 'legendary',
+      effects: ["+500% defense", "+200% health", "Physical immunity"],
+      unlockRealm: 15
+    },
+    {
+      id: "dao_crystal",
+      name: "Dao Comprehension Crystal",
+      description: "A crystal containing the essence of the Dao",
+      rarity: 'divine',
+      effects: ["+1000% all stats", "Perfect Dao understanding"],
+      unlockRealm: 22
+    }
   ];
 
   const encounters: Encounter[] = [
     {
       id: "rogue_cultivator",
       title: "Rogue Cultivator",
-      description: "A rogue cultivator blocks your path, demanding tribute.",
+      description: "A rogue cultivator blocks your path, demanding tribute for safe passage.",
       choices: [
-        { text: "Fight them", karmaChange: -5, luckChange: -10, reward: "Combat experience", risk: "Injury", statBonus: { attack: 5 } },
-        { text: "Pay tribute", karmaChange: 0, luckChange: 5, reward: "Safe passage" },
-        { text: "Try to reason", karmaChange: 10, luckChange: 0, reward: "Peaceful resolution", statBonus: { wisdom: 3 } }
+        { 
+          text: "Fight them head-on", 
+          karmaChange: -5, 
+          luckChange: -10, 
+          reward: "Combat experience", 
+          risk: "Potential injury", 
+          statBonus: { attack: 5, speed: 3 },
+          experienceGain: 50
+        },
+        { 
+          text: "Pay tribute peacefully", 
+          karmaChange: 0, 
+          luckChange: 5, 
+          reward: "Safe passage and respect",
+          experienceGain: 20
+        },
+        { 
+          text: "Try to reason with them", 
+          karmaChange: 10, 
+          luckChange: 0, 
+          reward: "Peaceful resolution", 
+          statBonus: { wisdom: 8 },
+          experienceGain: 30
+        }
       ]
     },
     {
       id: "secret_realm",
-      title: "Secret Realm",
-      description: "You discover a hidden secret realm filled with ancient treasures.",
+      title: "Ancient Secret Realm",
+      description: "You discover a hidden secret realm filled with ancient treasures and dangers.",
       choices: [
-        { text: "Enter cautiously", karmaChange: 0, luckChange: 20, reward: "Ancient artifact", statBonus: { wisdom: 10 } },
-        { text: "Rush in boldly", karmaChange: -5, luckChange: -10, reward: "Great treasure", risk: "Dangerous trap", statBonus: { attack: 15 } },
-        { text: "Mark location and leave", karmaChange: 5, luckChange: 10, reward: "Future opportunity", statBonus: { speed: 5 } }
+        { 
+          text: "Enter cautiously", 
+          karmaChange: 0, 
+          luckChange: 20, 
+          reward: "Ancient artifact discovered", 
+          statBonus: { wisdom: 10, defense: 5 },
+          experienceGain: 100,
+          pillReward: "Breakthrough Pill"
+        },
+        { 
+          text: "Rush in boldly", 
+          karmaChange: -5, 
+          luckChange: -10, 
+          reward: "Great treasure found", 
+          risk: "Dangerous trap triggered", 
+          statBonus: { attack: 15, speed: 10 },
+          experienceGain: 150
+        },
+        { 
+          text: "Mark location and leave", 
+          karmaChange: 5, 
+          luckChange: 10, 
+          reward: "Future opportunity secured", 
+          statBonus: { wisdom: 5 },
+          experienceGain: 25
+        }
       ]
     },
     {
       id: "injured_cultivator",
-      title: "Injured Cultivator",
-      description: "You find a severely injured cultivator who begs for help.",
+      title: "Injured Fellow Cultivator",
+      description: "You find a severely injured cultivator who begs for your help.",
       choices: [
-        { text: "Help them", karmaChange: 20, luckChange: 15, reward: "Good karma and gratitude", statBonus: { wisdom: 8, defense: 5 } },
-        { text: "Rob them", karmaChange: -30, luckChange: -20, reward: "Their possessions", risk: "Bad karma", statBonus: { attack: 10 } },
-        { text: "Ignore them", karmaChange: -5, luckChange: 0, reward: "Nothing" }
+        { 
+          text: "Help them selflessly", 
+          karmaChange: 20, 
+          luckChange: 15, 
+          reward: "Good karma and eternal gratitude", 
+          statBonus: { wisdom: 8, defense: 5 },
+          experienceGain: 75,
+          pillReward: "Healing Pill"
+        },
+        { 
+          text: "Rob their possessions", 
+          karmaChange: -30, 
+          luckChange: -20, 
+          reward: "Stolen treasures", 
+          risk: "Terrible karma", 
+          statBonus: { attack: 10 },
+          experienceGain: 40
+        },
+        { 
+          text: "Ignore and continue", 
+          karmaChange: -5, 
+          luckChange: 0, 
+          reward: "Nothing gained",
+          experienceGain: 10
+        }
       ]
     },
     {
       id: "ancient_master",
       title: "Ancient Master",
-      description: "An ancient master offers to teach you a powerful technique.",
+      description: "An ancient master appears before you, offering to share their wisdom.",
       choices: [
-        { text: "Accept humbly", karmaChange: 10, luckChange: 25, reward: "Powerful technique", statBonus: { wisdom: 20, spiritualPower: 50 } },
-        { text: "Demand more", karmaChange: -15, luckChange: -10, reward: "Anger the master", risk: "Curse" },
-        { text: "Politely decline", karmaChange: 5, luckChange: 5, reward: "Respect gained", statBonus: { wisdom: 5 } }
+        { 
+          text: "Accept humbly", 
+          karmaChange: 10, 
+          luckChange: 25, 
+          reward: "Powerful technique learned", 
+          statBonus: { wisdom: 20, spiritualPower: 50 },
+          experienceGain: 200
+        },
+        { 
+          text: "Demand more teachings", 
+          karmaChange: -15, 
+          luckChange: -10, 
+          reward: "Master's anger", 
+          risk: "Cursed with bad luck",
+          experienceGain: 0
+        },
+        { 
+          text: "Politely decline", 
+          karmaChange: 5, 
+          luckChange: 5, 
+          reward: "Respect earned", 
+          statBonus: { wisdom: 5 },
+          experienceGain: 30
+        }
       ]
     },
     {
       id: "heavenly_tribulation",
-      title: "Minor Tribulation",
-      description: "The heavens test your progress with lightning.",
+      title: "Minor Heavenly Tribulation",
+      description: "The heavens test your progress with lightning tribulation.",
       choices: [
-        { text: "Face it head-on", karmaChange: 0, luckChange: -5, reward: "Tempering", statBonus: { defense: 20, attack: 15 } },
-        { text: "Use protection", karmaChange: -5, luckChange: 10, reward: "Safe passage", statBonus: { wisdom: 10 } },
-        { text: "Flee", karmaChange: -10, luckChange: 0, reward: "Cowardice", statBonus: { speed: 5 } }
+        { 
+          text: "Face it with courage", 
+          karmaChange: 0, 
+          luckChange: -5, 
+          reward: "Tempering of body and soul", 
+          statBonus: { defense: 20, attack: 15, wisdom: 10 },
+          experienceGain: 300
+        },
+        { 
+          text: "Use protective treasures", 
+          karmaChange: -5, 
+          luckChange: 10, 
+          reward: "Safe passage through tribulation", 
+          statBonus: { wisdom: 10 },
+          experienceGain: 100
+        },
+        { 
+          text: "Flee from the tribulation", 
+          karmaChange: -10, 
+          luckChange: 0, 
+          reward: "Cowardice brings shame", 
+          statBonus: { speed: 5 },
+          experienceGain: 20
+        }
+      ]
+    },
+    {
+      id: "dao_enlightenment",
+      title: "Dao Enlightenment",
+      description: "A moment of sudden enlightenment about the nature of the Dao.",
+      choices: [
+        { 
+          text: "Embrace the enlightenment", 
+          karmaChange: 15, 
+          luckChange: 20, 
+          reward: "Deep understanding of Dao", 
+          statBonus: { wisdom: 30, spiritualPower: 100 },
+          experienceGain: 500
+        },
+        { 
+          text: "Question the revelation", 
+          karmaChange: 5, 
+          luckChange: 5, 
+          reward: "Critical thinking developed", 
+          statBonus: { wisdom: 15 },
+          experienceGain: 200
+        },
+        { 
+          text: "Ignore the moment", 
+          karmaChange: -5, 
+          luckChange: -10, 
+          reward: "Opportunity wasted",
+          experienceGain: 50
+        }
       ]
     }
   ];
@@ -201,7 +724,10 @@ const CultivationGame: React.FC = () => {
       defense: 10,
       speed: 10,
       wisdom: 10
-    }
+    },
+    totalExperience: 0,
+    breakthroughAttempts: 0,
+    successfulBreakthroughs: 0
   });
 
   // Calculate offline progress
@@ -209,18 +735,31 @@ const CultivationGame: React.FC = () => {
     const timeAway = Math.floor((currentTime - lastOnline) / 1000);
     if (timeAway < 60 || !playerData.autoCultivating) return null;
 
-    const hoursAway = timeAway / 3600;
+    const hoursAway = Math.min(timeAway / 3600, 24); // Cap at 24 hours
     const baseExpPerHour = 50 + (playerData.realm * 10);
     const luckBonus = Math.max(0, (playerData.luck - 50) / 100);
     const karmaBonus = Math.max(0, playerData.karma / 200);
+    const techniqueBonus = playerData.techniques.includes('dao_comprehension') ? 100 : 1;
     
-    const expPerHour = Math.floor(baseExpPerHour * (1 + luckBonus + karmaBonus));
-    const totalExpGained = Math.floor(expPerHour * Math.min(hoursAway, 24));
+    const expPerHour = Math.floor(baseExpPerHour * (1 + luckBonus + karmaBonus) * techniqueBonus);
+    const totalExpGained = Math.floor(expPerHour * hoursAway);
+
+    // Calculate encounters and pills found
+    const encountersFound = Math.floor(hoursAway * 0.5);
+    const pillsFound: string[] = [];
+    
+    for (let i = 0; i < Math.floor(hoursAway * 0.3); i++) {
+      const pillTypes = ["Qi Gathering Pill", "Healing Pill"];
+      if (playerData.realm >= 5) pillTypes.push("Breakthrough Pill");
+      pillsFound.push(pillTypes[Math.floor(Math.random() * pillTypes.length)]);
+    }
 
     return {
       timeAway,
       experienceGained: totalExpGained,
-      breakthroughs: []
+      breakthroughs: [],
+      encountersFound,
+      pillsFound
     };
   }, []);
 
@@ -230,16 +769,24 @@ const CultivationGame: React.FC = () => {
     let breakthroughs: string[] = [];
     
     updatedPlayer.experience += progress.experienceGained;
+    updatedPlayer.totalExperience += progress.experienceGained;
+    
+    // Add found pills
+    progress.pillsFound.forEach((pill: string) => {
+      updatedPlayer.pills[pill] = (updatedPlayer.pills[pill] || 0) + 1;
+    });
     
     while (updatedPlayer.experience >= updatedPlayer.experienceToNext && updatedPlayer.realm < realms.length - 1) {
       const nextRealm = realms[updatedPlayer.realm + 1];
       if (!nextRealm) break;
 
       const successChance = 0.7 + Math.max(0, (updatedPlayer.luck - 50) / 200) + Math.max(0, updatedPlayer.karma / 300);
+      updatedPlayer.breakthroughAttempts++;
       
       if (Math.random() < successChance) {
         breakthroughs.push(nextRealm.name);
         updatedPlayer = advanceRealm(updatedPlayer);
+        updatedPlayer.successfulBreakthroughs++;
       } else {
         updatedPlayer.experience = Math.floor(updatedPlayer.experience * 0.9);
         break;
@@ -255,10 +802,18 @@ const CultivationGame: React.FC = () => {
       const savedData = JSON.parse(saved);
       const currentTime = Date.now();
       
-      const progress = calculateOfflineProgress(savedData.player.lastOnline, currentTime, savedData.player);
+      // Ensure all required fields exist
+      const playerData = {
+        ...savedData.player,
+        totalExperience: savedData.player.totalExperience || 0,
+        breakthroughAttempts: savedData.player.breakthroughAttempts || 0,
+        successfulBreakthroughs: savedData.player.successfulBreakthroughs || 0
+      };
+      
+      const progress = calculateOfflineProgress(playerData.lastOnline, currentTime, playerData);
       
       if (progress && progress.experienceGained > 0) {
-        const { updatedPlayer, breakthroughs } = processOfflineProgress(progress, savedData.player);
+        const { updatedPlayer, breakthroughs } = processOfflineProgress(progress, playerData);
         progress.breakthroughs = breakthroughs;
         
         setPlayer({ ...updatedPlayer, lastOnline: currentTime });
@@ -266,7 +821,7 @@ const CultivationGame: React.FC = () => {
         setGameStarted(savedData.gameStarted);
         setGameLog(savedData.gameLog || []);
       } else {
-        setPlayer({ ...savedData.player, lastOnline: currentTime });
+        setPlayer({ ...playerData, lastOnline: currentTime });
         setGameStarted(savedData.gameStarted);
         setGameLog(savedData.gameLog || []);
       }
@@ -291,6 +846,7 @@ const CultivationGame: React.FC = () => {
         const newPlayer = {
           ...prev,
           experience: prev.experience + expGain,
+          totalExperience: prev.totalExperience + expGain,
           lastOnline: Date.now()
         };
 
@@ -320,14 +876,21 @@ const CultivationGame: React.FC = () => {
     setGameLog(prev => [...prev.slice(-19), `${new Date().toLocaleTimeString()}: ${message}`]);
   };
 
+  const animateStatChange = (statName: string) => {
+    setAnimatingStats(prev => [...prev, statName]);
+    setTimeout(() => {
+      setAnimatingStats(prev => prev.filter(s => s !== statName));
+    }, 1000);
+  };
+
   const startGame = () => {
     setGameStarted(true);
-    addToLog("Your cultivation journey begins! May you reach the peak of the Dao!");
+    addToLog("🌟 Your cultivation journey begins! May you reach the peak of the Dao!");
   };
 
   const resetGame = () => {
-    if (confirm("Are you sure you want to reset your cultivation progress?")) {
-      setPlayer({
+    if (confirm("Are you sure you want to reset your cultivation progress? This action cannot be undone!")) {
+      const newPlayer: Player = {
         name: "Cultivator",
         realm: 0,
         level: 1,
@@ -355,8 +918,13 @@ const CultivationGame: React.FC = () => {
           defense: 10,
           speed: 10,
           wisdom: 10
-        }
-      });
+        },
+        totalExperience: 0,
+        breakthroughAttempts: 0,
+        successfulBreakthroughs: 0
+      };
+      
+      setPlayer(newPlayer);
       setGameLog([]);
       setGameStarted(false);
       localStorage.removeItem('cultivationGame');
@@ -366,7 +934,11 @@ const CultivationGame: React.FC = () => {
   const gainExperience = (amount: number) => {
     setPlayer(prev => {
       const newExp = prev.experience + amount;
-      const newPlayer = { ...prev, experience: newExp };
+      const newPlayer = { 
+        ...prev, 
+        experience: newExp,
+        totalExperience: prev.totalExperience + amount
+      };
       
       if (newExp >= prev.experienceToNext && prev.realm < realms.length - 1) {
         return attemptBreakthrough(newPlayer);
@@ -385,11 +957,17 @@ const CultivationGame: React.FC = () => {
     const luckBonus = Math.max(0, (currentPlayer.luck - 50) / 100);
     const karmaBonus = Math.max(0, currentPlayer.karma / 100);
     const techniqueBonus = currentPlayer.techniques.includes('basic_meditation') ? 0.1 : 0;
+    const immunityBonus = currentPlayer.techniques.includes('heaven_defying') ? 0.5 : 0;
     
-    const successChance = Math.min(0.95, 0.5 + luckBonus + karmaBonus + techniqueBonus);
+    const successChance = Math.min(0.95, 0.5 + luckBonus + karmaBonus + techniqueBonus + immunityBonus);
     const success = Math.random() < successChance;
 
-    if (Math.random() < tribulationChance) {
+    const updatedPlayer = {
+      ...currentPlayer,
+      breakthroughAttempts: currentPlayer.breakthroughAttempts + 1
+    };
+
+    if (Math.random() < tribulationChance && !currentPlayer.techniques.includes('heaven_defying')) {
       setShowTribulation(true);
       setTribulationProgress(0);
       
@@ -400,8 +978,12 @@ const CultivationGame: React.FC = () => {
             setShowTribulation(false);
             
             if (success) {
-              addToLog(`🌩️ Successfully transcended tribulation! Advanced to ${nextRealm.name}!`);
-              setPlayer(prevPlayer => advanceRealm(prevPlayer));
+              addToLog(`⚡ Successfully transcended tribulation! Advanced to ${nextRealm.name}!`);
+              addToLog(`✨ ${nextRealm.unlockMessage}`);
+              setPlayer(prevPlayer => {
+                const advanced = advanceRealm(prevPlayer);
+                return { ...advanced, successfulBreakthroughs: advanced.successfulBreakthroughs + 1 };
+              });
             } else {
               addToLog("💥 Failed tribulation! Suffered severe injuries but survived.");
               setPlayer(prevPlayer => ({
@@ -416,16 +998,18 @@ const CultivationGame: React.FC = () => {
         });
       }, 100);
       
-      return currentPlayer;
+      return updatedPlayer;
     } else {
       if (success) {
         addToLog(`✨ Breakthrough successful! Advanced to ${nextRealm.name}!`);
-        return advanceRealm(currentPlayer);
+        addToLog(`🌟 ${nextRealm.unlockMessage}`);
+        const advanced = advanceRealm(updatedPlayer);
+        return { ...advanced, successfulBreakthroughs: advanced.successfulBreakthroughs + 1 };
       } else {
         addToLog("💔 Breakthrough failed. Continue cultivating to stabilize your foundation.");
         return {
-          ...currentPlayer,
-          experience: Math.floor(currentPlayer.experience * 0.9)
+          ...updatedPlayer,
+          experience: Math.floor(updatedPlayer.experience * 0.9)
         };
       }
     }
@@ -436,6 +1020,9 @@ const CultivationGame: React.FC = () => {
     if (!nextRealm) return currentPlayer;
 
     const multiplier = nextRealm.statMultiplier;
+    
+    // Animate stat changes
+    animateStatChange('all');
     
     return {
       ...currentPlayer,
@@ -462,7 +1049,7 @@ const CultivationGame: React.FC = () => {
 
   const meditate = () => {
     if (player.qi < 10) {
-      addToLog("Not enough Qi to meditate!");
+      addToLog("❌ Not enough Qi to meditate!");
       return;
     }
 
@@ -483,12 +1070,14 @@ const CultivationGame: React.FC = () => {
       gainExperience(expGain);
       addToLog(`🧘 Meditated deeply. Gained ${expGain} experience (karma bonus: ${Math.floor((karmaMultiplier - 1) * 100)}%).`);
       setIsTraining(false);
+      
+      animateStatChange('spiritualPower');
     }, 2000);
   };
 
   const train = () => {
     if (player.health < 20) {
-      addToLog("Too injured to train!");
+      addToLog("❌ Too injured to train!");
       return;
     }
 
@@ -511,6 +1100,9 @@ const CultivationGame: React.FC = () => {
       gainExperience(expGain);
       addToLog(`💪 Trained intensively. Gained ${expGain} experience and improved combat stats.`);
       setIsTraining(false);
+      
+      animateStatChange('attack');
+      animateStatChange('defense');
     }, 3000);
   };
 
@@ -522,15 +1114,17 @@ const CultivationGame: React.FC = () => {
       ...prev,
       health: Math.min(prev.maxHealth, prev.health + healthGain),
       qi: Math.min(prev.maxQi, prev.qi + qiGain),
-      lifespan: prev.lifespan - 1
+      lifespan: Math.max(0, prev.lifespan - 1)
     }));
     
     addToLog(`😴 Rested and recovered. Gained ${healthGain} health and ${qiGain} Qi.`);
+    animateStatChange('health');
+    animateStatChange('qi');
   };
 
   const usePill = (pillName: string) => {
     if (player.pills[pillName] <= 0) {
-      addToLog(`No ${pillName} remaining!`);
+      addToLog(`❌ No ${pillName} remaining!`);
       return;
     }
 
@@ -541,14 +1135,18 @@ const CultivationGame: React.FC = () => {
       let updates: any = { pills: newPills };
       
       if (pillName === "Healing Pill") {
-        updates = { ...updates, health: Math.min(prev.maxHealth, prev.health + 50) };
-        addToLog("💊 Used Healing Pill. Restored 50 health.");
+        const healAmount = Math.floor(prev.maxHealth * 0.5);
+        updates = { ...updates, health: Math.min(prev.maxHealth, prev.health + healAmount) };
+        addToLog(`💊 Used Healing Pill. Restored ${healAmount} health.`);
+        animateStatChange('health');
       } else if (pillName === "Qi Gathering Pill") {
-        updates = { ...updates, qi: Math.min(prev.maxQi, prev.qi + 30) };
-        addToLog("💊 Used Qi Gathering Pill. Restored 30 Qi.");
+        const qiAmount = Math.floor(prev.maxQi * 0.6);
+        updates = { ...updates, qi: Math.min(prev.maxQi, prev.qi + qiAmount) };
+        addToLog(`💊 Used Qi Gathering Pill. Restored ${qiAmount} Qi.`);
+        animateStatChange('qi');
       } else if (pillName === "Breakthrough Pill") {
-        const expGain = Math.floor(prev.experienceToNext * 0.1);
-        updates = { ...updates, experience: prev.experience + expGain };
+        const expGain = Math.floor(prev.experienceToNext * 0.15);
+        updates = { ...updates, experience: prev.experience + expGain, totalExperience: prev.totalExperience + expGain };
         addToLog(`💊 Used Breakthrough Pill. Gained ${expGain} experience!`);
       }
       
@@ -558,17 +1156,17 @@ const CultivationGame: React.FC = () => {
 
   const learnTechnique = (technique: Technique) => {
     if (player.cultivationPoints < technique.cost) {
-      addToLog(`Not enough cultivation points! Need ${technique.cost}, have ${player.cultivationPoints}.`);
+      addToLog(`❌ Not enough cultivation points! Need ${technique.cost}, have ${player.cultivationPoints}.`);
       return;
     }
 
     if (player.realm < technique.unlockRealm) {
-      addToLog(`Realm too low! Need ${realms[technique.unlockRealm].name} realm.`);
+      addToLog(`❌ Realm too low! Need ${realms[technique.unlockRealm].name} realm.`);
       return;
     }
 
     if (player.techniques.includes(technique.id)) {
-      addToLog("You already know this technique!");
+      addToLog("❌ You already know this technique!");
       return;
     }
 
@@ -582,7 +1180,7 @@ const CultivationGame: React.FC = () => {
   };
 
   const triggerEncounter = () => {
-    if (Math.random() < 0.4) {
+    if (Math.random() < 0.6) {
       const encounter = encounters[Math.floor(Math.random() * encounters.length)];
       setCurrentEncounter(encounter);
     } else {
@@ -599,26 +1197,46 @@ const CultivationGame: React.FC = () => {
         luck: Math.max(0, Math.min(100, prev.luck + choice.luckChange))
       };
 
+      if (choice.experienceGain) {
+        updates.experience = prev.experience + choice.experienceGain;
+        updates.totalExperience = prev.totalExperience + choice.experienceGain;
+      }
+
       if (choice.statBonus) {
         updates.stats = { ...prev.stats };
         Object.entries(choice.statBonus).forEach(([stat, bonus]) => {
           if (stat === 'spiritualPower') {
             updates.spiritualPower = prev.spiritualPower + (bonus as number);
+            animateStatChange('spiritualPower');
           } else if (updates.stats[stat as keyof typeof updates.stats] !== undefined) {
             updates.stats[stat as keyof typeof updates.stats] += bonus as number;
+            animateStatChange(stat);
           }
         });
+      }
+
+      if (choice.pillReward) {
+        updates.pills = { ...prev.pills };
+        updates.pills[choice.pillReward] = (updates.pills[choice.pillReward] || 0) + 1;
       }
 
       return { ...prev, ...updates };
     });
 
-    addToLog(`${currentEncounter.title}: ${choice.text}. ${choice.reward || ''}`);
+    let logMessage = `${currentEncounter.title}: ${choice.text}. ${choice.reward || ''}`;
+    if (choice.experienceGain) {
+      logMessage += ` (+${choice.experienceGain} exp)`;
+    }
+    if (choice.pillReward) {
+      logMessage += ` (+1 ${choice.pillReward})`;
+    }
     
-    if (choice.reward === "Ancient artifact") {
+    addToLog(logMessage);
+    
+    if (choice.reward === "Ancient artifact discovered") {
       setPlayer(prev => ({
         ...prev,
-        artifacts: [...prev.artifacts, "Ancient Cultivation Manual"]
+        artifacts: [...prev.artifacts, "ancient_cultivation_manual"]
       }));
     }
 
@@ -627,12 +1245,12 @@ const CultivationGame: React.FC = () => {
 
   const reincarnate = () => {
     if (player.realm < 10) {
-      addToLog("Must reach at least Earth Immortal realm to reincarnate!");
+      addToLog("❌ Must reach at least Earth Immortal realm to reincarnate!");
       return;
     }
 
-    if (confirm("Reincarnate and start over with bonuses?")) {
-      const bonusMultiplier = 1 + (player.reincarnations * 0.1);
+    if (confirm("Reincarnate and start over with permanent bonuses based on your achievements?")) {
+      const bonusMultiplier = 1 + (player.reincarnations * 0.1) + (player.successfulBreakthroughs * 0.01);
       
       setPlayer({
         name: player.name,
@@ -650,7 +1268,7 @@ const CultivationGame: React.FC = () => {
         cultivationPoints: Math.floor(player.cultivationPoints * 0.3),
         lifespan: Math.floor(80 * bonusMultiplier),
         maxLifespan: Math.floor(80 * bonusMultiplier),
-        techniques: player.techniques,
+        techniques: player.techniques.filter(t => techniques.find(tech => tech.id === t)?.category === 'legendary'),
         artifacts: player.artifacts,
         pills: { "Qi Gathering Pill": 5, "Healing Pill": 3, "Breakthrough Pill": 2 },
         achievements: [...player.achievements, `Reincarnation ${player.reincarnations + 1}`],
@@ -662,7 +1280,10 @@ const CultivationGame: React.FC = () => {
           defense: Math.floor(10 * bonusMultiplier),
           speed: Math.floor(10 * bonusMultiplier),
           wisdom: Math.floor(10 * bonusMultiplier)
-        }
+        },
+        totalExperience: player.totalExperience,
+        breakthroughAttempts: player.breakthroughAttempts,
+        successfulBreakthroughs: player.successfulBreakthroughs
       });
       
       addToLog(`🔄 Reincarnated! Starting over with ${Math.floor(bonusMultiplier * 100)}% stat bonus.`);
@@ -693,6 +1314,38 @@ const CultivationGame: React.FC = () => {
     return attack + defense + speed + wisdom + player.spiritualPower;
   };
 
+  const getSuccessRate = () => {
+    if (player.realm >= realms.length - 1) return 100;
+    
+    const luckBonus = Math.max(0, (player.luck - 50) / 100);
+    const karmaBonus = Math.max(0, player.karma / 100);
+    const techniqueBonus = player.techniques.includes('basic_meditation') ? 0.1 : 0;
+    const immunityBonus = player.techniques.includes('heaven_defying') ? 0.5 : 0;
+    
+    return Math.min(95, Math.floor((0.5 + luckBonus + karmaBonus + techniqueBonus + immunityBonus) * 100));
+  };
+
+  const getRarityColor = (rarity: string) => {
+    switch (rarity) {
+      case 'common': return 'text-gray-500';
+      case 'rare': return 'text-blue-500';
+      case 'epic': return 'text-purple-500';
+      case 'legendary': return 'text-yellow-500';
+      case 'divine': return 'text-red-500';
+      default: return 'text-gray-500';
+    }
+  };
+
+  const getCategoryColor = (category: string) => {
+    switch (category) {
+      case 'combat': return 'text-red-500';
+      case 'cultivation': return 'text-green-500';
+      case 'utility': return 'text-blue-500';
+      case 'legendary': return 'text-yellow-500';
+      default: return 'text-gray-500';
+    }
+  };
+
   if (!gameStarted) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -710,9 +1363,11 @@ const CultivationGame: React.FC = () => {
             <ul className="text-sm text-muted space-y-1">
               <li>• Advanced stat system with combat attributes</li>
               <li>• Technique learning and mastery system</li>
-              <li>• Enhanced encounters with stat bonuses</li>
+              <li>• Enhanced encounters with meaningful choices</li>
               <li>• Beautiful visual realm progression</li>
               <li>• Improved auto-cultivation mechanics</li>
+              <li>• Artifact collection and effects</li>
+              <li>• Detailed statistics tracking</li>
             </ul>
           </div>
           <button
@@ -753,6 +1408,20 @@ const CultivationGame: React.FC = () => {
                   <p className="text-sm text-muted">Breakthroughs:</p>
                   {offlineProgress.breakthroughs.map((realm, index) => (
                     <p key={index} className="font-bold text-primary">🎉 {realm}</p>
+                  ))}
+                </div>
+              )}
+              {offlineProgress.encountersFound > 0 && (
+                <div className="p-3 bg-glass rounded-lg">
+                  <p className="text-sm text-muted">Encounters Found:</p>
+                  <p className="font-bold text-secondary">{offlineProgress.encountersFound}</p>
+                </div>
+              )}
+              {offlineProgress.pillsFound.length > 0 && (
+                <div className="p-3 bg-glass rounded-lg">
+                  <p className="text-sm text-muted">Pills Found:</p>
+                  {offlineProgress.pillsFound.map((pill, index) => (
+                    <p key={index} className="text-sm text-primary">💊 {pill}</p>
                   ))}
                 </div>
               )}
@@ -808,6 +1477,9 @@ const CultivationGame: React.FC = () => {
                   <div className="text-sm text-muted">
                     Karma: {choice.karmaChange > 0 ? '+' : ''}{choice.karmaChange} | 
                     Luck: {choice.luckChange > 0 ? '+' : ''}{choice.luckChange}
+                    {choice.experienceGain && (
+                      <span className="text-primary ml-2">+{choice.experienceGain} exp</span>
+                    )}
                     {choice.statBonus && (
                       <span className="text-primary ml-2">
                         +Stats: {Object.entries(choice.statBonus).map(([stat, bonus]) => `${stat}+${bonus}`).join(', ')}
@@ -816,6 +1488,50 @@ const CultivationGame: React.FC = () => {
                   </div>
                 </button>
               ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Realm Info Modal */}
+      {showRealmInfo && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="glass-panel p-6 max-w-lg mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="orbitron text-xl font-bold text-primary">Realm Information</h3>
+              <button
+                onClick={() => setShowRealmInfo(false)}
+                className="p-2 hover:bg-glass-hover rounded-lg transition-all"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <span style={{ color: currentRealm.color, fontSize: '2rem' }}>{currentRealm.icon}</span>
+                <div>
+                  <h4 className="font-bold text-secondary">{currentRealm.name}</h4>
+                  <p className="text-sm text-muted">{currentRealm.description}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="text-muted">Stat Multiplier:</span>
+                  <span className="text-primary ml-2">{currentRealm.statMultiplier}x</span>
+                </div>
+                <div>
+                  <span className="text-muted">Lifespan Bonus:</span>
+                  <span className="text-primary ml-2">+{currentRealm.lifespanBonus}</span>
+                </div>
+                <div>
+                  <span className="text-muted">Tribulation Chance:</span>
+                  <span className="text-primary ml-2">{Math.floor(currentRealm.tribulationChance * 100)}%</span>
+                </div>
+                <div>
+                  <span className="text-muted">Success Rate:</span>
+                  <span className="text-primary ml-2">{getSuccessRate()}%</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -831,6 +1547,12 @@ const CultivationGame: React.FC = () => {
                 <div className="flex items-center gap-2">
                   <span style={{ color: currentRealm.color }}>{currentRealm.icon}</span>
                   <p className="text-secondary">{currentRealm.name} - Level {player.level}</p>
+                  <button
+                    onClick={() => setShowRealmInfo(true)}
+                    className="p-1 hover:bg-glass-hover rounded transition-all"
+                  >
+                    <Eye className="w-4 h-4 text-primary" />
+                  </button>
                 </div>
                 <p className="text-muted text-sm">{currentRealm.description}</p>
                 <p className="text-primary text-sm font-bold">Power Level: {getPowerLevel().toLocaleString()}</p>
@@ -838,6 +1560,7 @@ const CultivationGame: React.FC = () => {
               <div className="text-right">
                 <p className="text-sm text-muted">Reincarnations: {player.reincarnations}</p>
                 <p className="text-sm text-muted">Lifespan: {player.lifespan.toLocaleString()}/{player.maxLifespan.toLocaleString()}</p>
+                <p className="text-sm text-muted">Success Rate: {getSuccessRate()}%</p>
                 <div className="flex items-center gap-2 mt-2">
                   <Clock className="w-4 h-4 text-primary" />
                   <span className={`text-sm ${player.autoCultivating ? 'text-green-500' : 'text-red-500'}`}>
@@ -862,11 +1585,12 @@ const CultivationGame: React.FC = () => {
             </div>
 
             {/* Tabs */}
-            <div className="flex gap-2 mb-4">
+            <div className="flex gap-2 mb-4 flex-wrap">
               {[
                 { id: 'stats', label: 'Stats', icon: Heart },
                 { id: 'techniques', label: 'Techniques', icon: Brain },
                 { id: 'artifacts', label: 'Artifacts', icon: Crown },
+                { id: 'pills', label: 'Pills', icon: Gift },
                 { id: 'achievements', label: 'Achievements', icon: Star }
               ].map(tab => {
                 const Icon = tab.icon;
@@ -889,46 +1613,84 @@ const CultivationGame: React.FC = () => {
 
             {/* Tab Content */}
             {selectedTab === 'stats' && (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="text-center p-3 bg-glass rounded-lg">
-                  <Heart className="w-6 h-6 text-red-500 mx-auto mb-2" />
-                  <div className="text-sm text-muted">Health</div>
-                  <div className="font-bold text-secondary">{player.health.toLocaleString()}/{player.maxHealth.toLocaleString()}</div>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className={`text-center p-3 bg-glass rounded-lg transition-all ${animatingStats.includes('health') ? 'scale-110 bg-green-200' : ''}`}>
+                    <Heart className="w-6 h-6 text-red-500 mx-auto mb-2" />
+                    <div className="text-sm text-muted">Health</div>
+                    <div className="font-bold text-secondary">{player.health.toLocaleString()}/{player.maxHealth.toLocaleString()}</div>
+                  </div>
+                  <div className={`text-center p-3 bg-glass rounded-lg transition-all ${animatingStats.includes('qi') ? 'scale-110 bg-blue-200' : ''}`}>
+                    <Zap className="w-6 h-6 text-blue-500 mx-auto mb-2" />
+                    <div className="text-sm text-muted">Qi</div>
+                    <div className="font-bold text-secondary">{player.qi.toLocaleString()}/{player.maxQi.toLocaleString()}</div>
+                  </div>
+                  <div className={`text-center p-3 bg-glass rounded-lg transition-all ${animatingStats.includes('spiritualPower') ? 'scale-110 bg-purple-200' : ''}`}>
+                    <Brain className="w-6 h-6 text-purple-500 mx-auto mb-2" />
+                    <div className="text-sm text-muted">Spiritual Power</div>
+                    <div className="font-bold text-secondary">{player.spiritualPower.toLocaleString()}</div>
+                  </div>
+                  <div className="text-center p-3 bg-glass rounded-lg">
+                    <Star className="w-6 h-6 text-yellow-500 mx-auto mb-2" />
+                    <div className="text-sm text-muted">Luck</div>
+                    <div className="font-bold text-secondary">{player.luck}</div>
+                  </div>
                 </div>
-                <div className="text-center p-3 bg-glass rounded-lg">
-                  <Zap className="w-6 h-6 text-blue-500 mx-auto mb-2" />
-                  <div className="text-sm text-muted">Qi</div>
-                  <div className="font-bold text-secondary">{player.qi.toLocaleString()}/{player.maxQi.toLocaleString()}</div>
+                
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className={`text-center p-3 bg-glass rounded-lg transition-all ${animatingStats.includes('attack') ? 'scale-110 bg-red-200' : ''}`}>
+                    <Sword className="w-6 h-6 text-red-600 mx-auto mb-2" />
+                    <div className="text-sm text-muted">Attack</div>
+                    <div className="font-bold text-secondary">{player.stats.attack.toLocaleString()}</div>
+                  </div>
+                  <div className={`text-center p-3 bg-glass rounded-lg transition-all ${animatingStats.includes('defense') ? 'scale-110 bg-blue-200' : ''}`}>
+                    <Shield className="w-6 h-6 text-blue-600 mx-auto mb-2" />
+                    <div className="text-sm text-muted">Defense</div>
+                    <div className="font-bold text-secondary">{player.stats.defense.toLocaleString()}</div>
+                  </div>
+                  <div className={`text-center p-3 bg-glass rounded-lg transition-all ${animatingStats.includes('speed') ? 'scale-110 bg-green-200' : ''}`}>
+                    <Zap className="w-6 h-6 text-green-600 mx-auto mb-2" />
+                    <div className="text-sm text-muted">Speed</div>
+                    <div className="font-bold text-secondary">{player.stats.speed.toLocaleString()}</div>
+                  </div>
+                  <div className={`text-center p-3 bg-glass rounded-lg transition-all ${animatingStats.includes('wisdom') ? 'scale-110 bg-purple-200' : ''}`}>
+                    <Eye className="w-6 h-6 text-purple-600 mx-auto mb-2" />
+                    <div className="text-sm text-muted">Wisdom</div>
+                    <div className="font-bold text-secondary">{player.stats.wisdom.toLocaleString()}</div>
+                  </div>
                 </div>
-                <div className="text-center p-3 bg-glass rounded-lg">
-                  <Brain className="w-6 h-6 text-purple-500 mx-auto mb-2" />
-                  <div className="text-sm text-muted">Spiritual Power</div>
-                  <div className="font-bold text-secondary">{player.spiritualPower.toLocaleString()}</div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="text-center p-3 bg-glass rounded-lg">
+                    <div className="text-sm text-muted">Karma</div>
+                    <div className={`font-bold ${player.karma >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                      {player.karma}
+                    </div>
+                    <div className="text-xs text-muted mt-1">
+                      Meditation Bonus: +{Math.floor(Math.max(0, player.karma / 100) * 100)}%
+                    </div>
+                  </div>
+                  <div className="text-center p-3 bg-glass rounded-lg">
+                    <div className="text-sm text-muted">Cultivation Points</div>
+                    <div className="font-bold text-primary">{player.cultivationPoints.toLocaleString()}</div>
+                  </div>
                 </div>
-                <div className="text-center p-3 bg-glass rounded-lg">
-                  <Star className="w-6 h-6 text-yellow-500 mx-auto mb-2" />
-                  <div className="text-sm text-muted">Luck</div>
-                  <div className="font-bold text-secondary">{player.luck}</div>
-                </div>
-                <div className="text-center p-3 bg-glass rounded-lg">
-                  <Sword className="w-6 h-6 text-red-600 mx-auto mb-2" />
-                  <div className="text-sm text-muted">Attack</div>
-                  <div className="font-bold text-secondary">{player.stats.attack.toLocaleString()}</div>
-                </div>
-                <div className="text-center p-3 bg-glass rounded-lg">
-                  <Shield className="w-6 h-6 text-blue-600 mx-auto mb-2" />
-                  <div className="text-sm text-muted">Defense</div>
-                  <div className="font-bold text-secondary">{player.stats.defense.toLocaleString()}</div>
-                </div>
-                <div className="text-center p-3 bg-glass rounded-lg">
-                  <Zap className="w-6 h-6 text-green-600 mx-auto mb-2" />
-                  <div className="text-sm text-muted">Speed</div>
-                  <div className="font-bold text-secondary">{player.stats.speed.toLocaleString()}</div>
-                </div>
-                <div className="text-center p-3 bg-glass rounded-lg">
-                  <Eye className="w-6 h-6 text-purple-600 mx-auto mb-2" />
-                  <div className="text-sm text-muted">Wisdom</div>
-                  <div className="font-bold text-secondary">{player.stats.wisdom.toLocaleString()}</div>
+
+                <div className="grid grid-cols-3 gap-4 text-sm">
+                  <div className="text-center p-3 bg-glass rounded-lg">
+                    <div className="text-muted">Total Experience</div>
+                    <div className="font-bold text-primary">{player.totalExperience.toLocaleString()}</div>
+                  </div>
+                  <div className="text-center p-3 bg-glass rounded-lg">
+                    <div className="text-muted">Breakthrough Attempts</div>
+                    <div className="font-bold text-secondary">{player.breakthroughAttempts}</div>
+                  </div>
+                  <div className="text-center p-3 bg-glass rounded-lg">
+                    <div className="text-muted">Success Rate</div>
+                    <div className="font-bold text-green-500">
+                      {player.breakthroughAttempts > 0 ? Math.floor((player.successfulBreakthroughs / player.breakthroughAttempts) * 100) : 0}%
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -958,7 +1720,12 @@ const CultivationGame: React.FC = () => {
                       >
                         <div className="flex items-center justify-between mb-2">
                           <h5 className="font-semibold text-secondary">{technique.name}</h5>
-                          {isLearned && <span className="text-green-500">✓</span>}
+                          <div className="flex items-center gap-2">
+                            <span className={`text-xs px-2 py-1 rounded ${getCategoryColor(technique.category)} bg-current/10`}>
+                              {technique.category}
+                            </span>
+                            {isLearned && <span className="text-green-500">✓</span>}
+                          </div>
                         </div>
                         <p className="text-sm text-muted mb-2">{technique.description}</p>
                         <div className="flex items-center justify-between text-xs">
@@ -974,20 +1741,63 @@ const CultivationGame: React.FC = () => {
 
             {selectedTab === 'artifacts' && (
               <div className="space-y-3">
+                <h4 className="font-semibold text-secondary">Collected Artifacts</h4>
                 {player.artifacts.length === 0 ? (
                   <p className="text-muted text-center py-8">No artifacts collected yet.</p>
                 ) : (
-                  player.artifacts.map((artifact, index) => (
-                    <div key={index} className="p-3 bg-glass rounded-lg">
-                      <h5 className="font-semibold text-secondary">{artifact}</h5>
-                    </div>
-                  ))
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {player.artifacts.map((artifactId, index) => {
+                      const artifact = artifacts.find(a => a.id === artifactId);
+                      if (!artifact) return null;
+                      
+                      return (
+                        <div key={index} className="p-3 bg-glass rounded-lg">
+                          <div className="flex items-center justify-between mb-2">
+                            <h5 className="font-semibold text-secondary">{artifact.name}</h5>
+                            <span className={`text-xs px-2 py-1 rounded ${getRarityColor(artifact.rarity)} bg-current/10`}>
+                              {artifact.rarity}
+                            </span>
+                          </div>
+                          <p className="text-sm text-muted mb-2">{artifact.description}</p>
+                          <div className="space-y-1">
+                            {artifact.effects.map((effect, i) => (
+                              <p key={i} className="text-xs text-primary">• {effect}</p>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 )}
+              </div>
+            )}
+
+            {selectedTab === 'pills' && (
+              <div className="space-y-4">
+                <h4 className="font-semibold text-secondary">Pill Collection</h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  {Object.entries(player.pills).map(([pill, count]) => (
+                    <div key={pill} className="p-4 bg-glass rounded-lg text-center">
+                      <div className="text-2xl mb-2">💊</div>
+                      <h5 className="font-semibold text-secondary mb-1">{pill}</h5>
+                      <p className="text-lg font-bold text-primary">{count}</p>
+                      <button
+                        onClick={() => usePill(pill)}
+                        disabled={count <= 0}
+                        className="mt-2 px-3 py-1 bg-primary text-white rounded-lg text-sm 
+                                 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 transition-all"
+                      >
+                        Use
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
             {selectedTab === 'achievements' && (
               <div className="space-y-3">
+                <h4 className="font-semibold text-secondary">Achievements</h4>
                 {player.achievements.length === 0 ? (
                   <p className="text-muted text-center py-8">No achievements unlocked yet.</p>
                 ) : (
@@ -999,22 +1809,6 @@ const CultivationGame: React.FC = () => {
                 )}
               </div>
             )}
-
-            <div className="grid grid-cols-2 gap-4 mt-4">
-              <div className="text-center p-3 bg-glass rounded-lg">
-                <div className="text-sm text-muted">Karma</div>
-                <div className={`font-bold ${player.karma >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                  {player.karma}
-                </div>
-                <div className="text-xs text-muted mt-1">
-                  Meditation Bonus: +{Math.floor(Math.max(0, player.karma / 100) * 100)}%
-                </div>
-              </div>
-              <div className="text-center p-3 bg-glass rounded-lg">
-                <div className="text-sm text-muted">Cultivation Points</div>
-                <div className="font-bold text-primary">{player.cultivationPoints.toLocaleString()}</div>
-              </div>
-            </div>
           </div>
 
           {/* Actions */}
@@ -1051,24 +1845,6 @@ const CultivationGame: React.FC = () => {
               >
                 🚶 Explore
               </button>
-            </div>
-
-            {/* Pills */}
-            <div className="mt-4">
-              <h4 className="font-semibold text-secondary mb-2">Pills & Elixirs</h4>
-              <div className="flex gap-2 flex-wrap">
-                {Object.entries(player.pills).map(([pill, count]) => (
-                  <button
-                    key={pill}
-                    onClick={() => usePill(pill)}
-                    disabled={count <= 0}
-                    className="px-3 py-2 bg-glass hover:bg-glass-hover rounded-lg text-sm 
-                             disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                  >
-                    💊 {pill} ({count})
-                  </button>
-                ))}
-              </div>
             </div>
 
             {/* Advanced Actions */}
@@ -1118,6 +1894,7 @@ const CultivationGame: React.FC = () => {
             ))}
             {gameLog.length === 0 && (
               <div className="text-center text-muted py-8">
+                <Scroll className="w-12 h-12 mx-auto mb-4 opacity-50" />
                 <p>Your cultivation journey will be recorded here...</p>
               </div>
             )}
